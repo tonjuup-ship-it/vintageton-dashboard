@@ -1,0 +1,2118 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vintageton">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<title>Vintageton</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ================= Graphite ================= */
+:root {
+  color-scheme: dark;
+  --bg: #08080A; --panel: #0F0F12; --card-2: #141418; --panel-blur: none; --hover: #16161B;
+  --line: #1E1E24; --line-2: #2A2A33;
+  --text: #EDEDF0; --text-2: #A1A1AA; --muted: #6E6E7A;
+  --c-rev: #8B9CFF;      /* omzet */
+  --c-cost: #F5A524;     /* inkoop */
+  --c-profit: #3DDC97;   /* winst */
+  --c-accent: #D4D4D8;   /* neutraal accent (items, prijzen) */
+  --c-ghost: #3A3A44;    /* vorig jaar */
+  --c-warn: #F5A524; --c-neg: #F2555A;
+  --th-bg: #0F0F12; --tip-bg: rgba(20,20,24,.97);
+  --font: "Geist", system-ui, -apple-system, sans-serif; --font-num: var(--font); --mono: "Geist Mono", ui-monospace, monospace;
+  --on-accent: #08080A; --r: 14px;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; color: var(--text); font: 13.5px/1.5 var(--font); min-height: 100vh; background: var(--bg); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(800px 420px at 12% -8%, rgba(139,156,255,.10), transparent 70%), radial-gradient(700px 420px at 100% 0%, rgba(61,220,151,.05), transparent 70%); }
+.wrap { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 0 24px 64px; }
+@media (max-width: 700px) { .wrap { padding: 0 14px 48px; } }
+.ico { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; flex: none; }
+
+/* ---------- kop + navigatie ---------- */
+.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; min-height: 64px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.topbar::before { content: ""; position: absolute; inset: 0 calc(50% - 50vw); z-index: -1; background: rgba(8,8,10,.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.mark { width: 28px; height: 28px; display: block; flex: none; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.crumb { color: var(--muted); font-weight: 400; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { font: 500 13.5px var(--font); color: var(--text-2); background: none; border: 0; padding: 7px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.tabs button:hover { background: var(--card-2); color: var(--text); }
+.tabs button[aria-selected="true"] { color: var(--text); background: var(--card-2); box-shadow: inset 0 0 0 1px var(--line-2); }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 9px; padding: 2px; gap: 2px; flex-wrap: wrap; background: rgba(15,15,18,.6); }
+.seg button { background: none; border: 0; color: var(--text-2); font: 500 12.5px var(--font); padding: 5px 10px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+@media (max-width: 1060px) { .tabs { order: 3; width: 100%; margin: 0 -2px 8px; } }
+
+.page-h { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px 16px; margin: 26px 0 18px; flex-wrap: wrap; }
+.page-h h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.025em; }
+.page-h p { margin: 4px 0 0; color: var(--text-2); max-width: 760px; }
+.sync { color: var(--muted); font: 12px var(--mono); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--c-profit); box-shadow: 0 0 0 3px rgba(61,220,151,.15); }
+@media (max-width: 700px) { .page-h { margin: 18px 0 14px; } .page-h h1 { font-size: 22px; } }
+
+.view { display: none; animation: fade .3s ease; }
+.view.on { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } }
+
+/* ---------- raster + kaarten ---------- */
+.g12 { display: grid; gap: 12px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.s3 { grid-column: span 3; } .s4 { grid-column: span 4; } .s5 { grid-column: span 5; } .s6 { grid-column: span 6; } .s7 { grid-column: span 7; } .s8 { grid-column: span 8; } .s12 { grid-column: span 12; }
+@media (max-width: 1100px) { .s3 { grid-column: span 6; } .s4, .s5, .s7, .s8 { grid-column: span 12; } }
+@media (max-width: 760px) { .s6 { grid-column: span 12; } }
+.card, .panel { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
+.card.pad0 { padding: 0; overflow: hidden; }
+.ct, .ph { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.ct h3, .ph h3 { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-2); display: flex; align-items: center; gap: 2px; letter-spacing: 0; text-transform: none; }
+.ct .r, .ph .desc { color: var(--muted); font-size: 12px; }
+.kicker { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.row { margin-top: 12px; }
+.grid { display: grid; gap: 12px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.dotc { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; flex: none; }
+.dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
+.chip, .delta { display: inline-flex; align-items: center; gap: 4px; font: 500 11.5px var(--mono); padding: 1px 7px; border-radius: 5px; color: var(--text-2); background: var(--card-2); white-space: nowrap; }
+.chip.up, .delta.up { color: var(--c-profit); background: rgba(61,220,151,.1); }
+.chip.dn, .delta.down { color: var(--c-neg); background: rgba(242,85,90,.1); }
+.pos { color: var(--c-profit); } .neg { color: var(--c-neg); } .warn { color: var(--c-warn); }
+.btn { font: 500 12.5px var(--font); color: var(--text); background: var(--card-2); border: 1px solid var(--line-2); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+.btn:hover { border-color: #3a3a46; }
+.btn.small { padding: 5px 10px; }
+.linkbtn { background: none; border: 0; color: var(--c-rev); cursor: pointer; font: 500 12px var(--font); padding: 0; display: inline-flex; align-items: center; gap: 4px; }
+.linkbtn:hover { text-decoration: underline; }
+.lg { display: flex; gap: 14px; color: var(--text-2); font-size: 12px; flex-wrap: wrap; }
+.lg span { display: inline-flex; align-items: center; gap: 6px; }
+.lg i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.lg i.ln { height: 2px; width: 14px; border-radius: 2px; }
+.note { color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+/* ---------- KPI ---------- */
+.kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
+.kpi .v { font-size: 30px; font-weight: 600; letter-spacing: -.03em; margin-top: 2px; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.kpi .row { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.kpi .ct { margin-bottom: 4px; }
+.kpi > svg.spark { position: absolute; right: 16px; top: 16px; width: 96px; height: 34px; }
+@media (max-width: 640px) { .kpi .v { font-size: 23px; } .kpi > svg.spark { position: static; display: block; width: 100%; height: 26px; margin-top: 8px; } .card { padding: 14px; }
+  .crumb { display: none; } .topbar { gap: 8px 10px; min-height: 56px; padding-top: 8px; } .seg button { padding: 5px 8px; } .controls .btn { padding: 5px 9px; } }
+
+/* ---------- hoofdgrafiek ---------- */
+.mchart { position: relative; height: 330px; }
+@media (max-width: 640px) { .mchart { height: 260px; } }
+.mchart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.mchart .hit { cursor: pointer; }
+.tip { position: absolute; pointer-events: none; z-index: 5; background: var(--tip-bg); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; min-width: 176px; box-shadow: 0 12px 30px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; font-size: 12.5px; }
+.tip.on { opacity: 1; }
+.tip b { display: block; margin-bottom: 6px; text-transform: capitalize; }
+.tip .r { display: flex; justify-content: space-between; gap: 16px; color: var(--text-2); }
+.tip .r span:last-child { color: var(--text); font-family: var(--mono); }
+
+/* ---------- maandkaart ---------- */
+.live { font: 500 11px var(--mono); color: var(--c-profit); display: inline-flex; align-items: center; gap: 6px; }
+.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-profit); animation: p 1.6s infinite; }
+@keyframes p { 50% { opacity: .25; } }
+.mcard .v { font-size: 40px; font-weight: 600; letter-spacing: -.035em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.mcard .sub { color: var(--text-2); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mcard .sub b { color: var(--text); font-weight: 600; }
+.meter { position: relative; height: 8px; border-radius: 99px; background: var(--card-2); margin: 16px 0 8px; }
+.meter i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: linear-gradient(90deg, #5b6cf0, var(--c-rev)); }
+.meter u { position: absolute; top: 0; bottom: 0; border-radius: 0 99px 99px 0; background: repeating-linear-gradient(45deg, rgba(139,156,255,.45) 0 3px, transparent 3px 7px); }
+.meter b { position: absolute; top: -5px; width: 2px; height: 18px; background: var(--text); border-radius: 2px; transform: translateX(-1px); }
+.ml { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+.list { margin-top: 14px; border-top: 1px solid var(--line); }
+.list div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--text-2); }
+.list span:last-child { color: var(--text); font-family: var(--mono); text-align: right; }
+.src { margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+
+/* ---------- doel ---------- */
+.gauge { display: grid; place-items: center; position: relative; }
+.gauge svg { width: 100%; max-width: 300px; }
+.gauge .c { position: absolute; top: 44%; text-align: center; }
+.gauge .c .v { font-size: 28px; font-weight: 600; letter-spacing: -.03em; }
+.gauge .c .n { color: var(--muted); font-size: 12px; }
+.gstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+.gstats div { background: var(--card-2); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+.gstats span { display: block; font-size: 11px; color: var(--muted); }
+.gstats b { font: 500 13px var(--mono); }
+
+/* ---------- pijplijn + merken ---------- */
+.flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: stretch; }
+.stage { background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.stage .l { color: var(--text-2); display: flex; align-items: center; }
+.stage .v { font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+.stage .n { color: var(--muted); font-size: 11.5px; }
+.arrow { display: grid; place-items: center; color: var(--muted); }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); height: 14px; } }
+.brand-row { display: grid; grid-template-columns: 120px 1fr 74px; align-items: center; gap: 10px; padding: 6px 0; }
+.brand-row .bar { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
+.brand-row .bar i { display: block; height: 100%; border-radius: 4px; background: var(--c-rev); }
+.brand-row .val { text-align: right; font: 12.5px var(--mono); }
+.brand-row .nm { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-row .nm small { color: var(--muted); margin-left: 4px; }
+
+/* ---------- etalage ---------- */
+.gal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); }
+@media (max-width: 760px) { .gal { grid-template-columns: repeat(2, 1fr); } }
+.g { position: relative; aspect-ratio: 3/4; background: var(--card-2); overflow: hidden; }
+.g img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
+.g:hover img { transform: scale(1.05); }
+.g .ov { position: absolute; inset: auto 0 0 0; padding: 34px 12px 10px; background: linear-gradient(transparent, rgba(8,8,10,.93)); }
+.g .t { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g .m { display: flex; justify-content: space-between; gap: 6px; font: 12px var(--mono); color: var(--text-2); margin-top: 2px; }
+.g .m span { white-space: nowrap; }
+@media (max-width: 760px) { .g .m { flex-wrap: wrap; font-size: 11px; gap: 0 6px; } }
+.g .code { position: absolute; top: 10px; left: 10px; font: 500 11px var(--mono); background: rgba(8,8,10,.75); border: 1px solid var(--line-2); padding: 2px 6px; border-radius: 6px; }
+.g .age { position: absolute; top: 10px; right: 10px; font: 500 11px var(--mono); color: #1a1100; background: var(--c-warn); padding: 2px 6px; border-radius: 6px; }
+
+/* ---------- actie nodig ---------- */
+.feed { display: grid; gap: 10px; }
+.f { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.f .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
+.f b { font-weight: 600; }
+.f p { margin: 2px 0 0; color: var(--text-2); }
+.ic.good { background: rgba(61,220,151,.12); color: var(--c-profit); }
+.ic.info { background: rgba(139,156,255,.12); color: var(--c-rev); }
+.ic.warn { background: rgba(245,165,36,.12); color: var(--c-warn); }
+.ic.bad { background: rgba(242,85,90,.12); color: var(--c-neg); }
+
+/* ---------- grafieken & tabellen ---------- */
+.chart { position: relative; height: 260px; }
+.tablewrap { overflow: auto; max-height: 520px; border-radius: 10px; border: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { position: sticky; top: 0; z-index: 1; background: var(--th-bg); color: var(--muted); font-weight: 500; font-size: 11.5px; cursor: pointer; user-select: none; }
+th:hover { color: var(--text); }
+tbody tr:hover { background: var(--hover); }
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-size: 12.5px; }
+td.title { white-space: normal; min-width: 220px; color: var(--text); }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px; border-radius: 5px; font-size: 11.5px; background: var(--card-2); color: var(--text-2); }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.badge.voltooid::before { background: var(--c-profit); }
+.badge.onderweg::before { background: var(--c-rev); }
+.badge.geannuleerd::before { background: var(--c-neg); }
+.badge.retour::before { background: var(--c-cost); }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+input[type=search] { font: 13px var(--font); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); color: var(--text); min-width: min(100%, 300px); outline: none; }
+input[type=search]:focus { border-color: var(--c-rev); box-shadow: 0 0 0 3px rgba(139,156,255,.15); }
+
+/* ---------- merken ---------- */
+.matrix { position: relative; height: 440px; }
+@media (max-width: 640px) { .matrix { height: 340px; } }
+.quad-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin-top: 12px; }
+.quad-legend > div { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--text-2); padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.quad-legend b { color: var(--text); display: block; font-weight: 600; }
+.cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.bcard .hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.bcard .nm { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bcard .big { font-size: 24px; font-weight: 600; letter-spacing: -.02em; margin: 8px 0 0; }
+.bcard .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.bcard .stats div { font-size: 11px; color: var(--muted); }
+.bcard .stats b { display: block; font: 500 12.5px var(--mono); color: var(--text); margin-top: 1px; }
+.bcard svg.spark { width: 100%; height: 30px; display: block; margin-top: 12px; }
+.qbadge { font: 500 11px var(--font); padding: 2px 8px; border-radius: 5px; white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; }
+
+.empty-state { max-width: 560px; margin: 48px auto; text-align: center; padding: 34px 28px; }
+.empty-state .ic { margin: 0 auto 14px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; }
+.empty-state h2 { margin: 0 0 8px; font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+.empty-state p { color: var(--text-2); margin: 0; }
+.demo { position: fixed; bottom: 14px; right: 14px; z-index: 50; padding: 5px 10px; border-radius: 6px; font: 500 11px var(--mono); color: #1a1100; background: var(--c-warn); }
+/* ================= online: inloggen + voorraad (Graphite) ================= */
+#loginScreen { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(8,8,10,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+#loginScreen[hidden] { display: none; }
+#loginScreen .panel { width: min(100%, 380px); padding: 28px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+#loginScreen h2 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+#loginScreen p { margin: 0 0 18px; color: var(--text-2); font-size: 13px; }
+#loginScreen .kicker { color: var(--muted); }
+.field { display: grid; gap: 6px; margin-bottom: 12px; font-size: 12.5px; color: var(--text-2); }
+.field input, .field select, .inp { font: 13.5px var(--font); padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); color: var(--text); outline: none; width: 100%; }
+.field input:focus, .inp:focus { border-color: var(--c-rev); box-shadow: 0 0 0 3px rgba(139,156,255,.15); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
+.btn.primary:hover { background: #fff; }
+.err { color: var(--c-neg); font-size: 12.5px; min-height: 18px; margin-top: 6px; }
+.ok { color: var(--c-profit); font-size: 12.5px; }
+
+/* ---------- voorraad: cijfers + secties ---------- */
+.ink-kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.ink-kpis .panel { padding: 14px 16px; }
+.ink-kpis .kicker { font-size: 13px; }
+.ink-kpis .v { font-size: 28px; font-weight: 600; letter-spacing: -.03em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.ink-kpis .s { font-size: 12px; color: var(--muted); }
+.ink-sec { margin-top: 12px; }
+.ink-sec > .ph { margin-bottom: 10px; }
+.ink-sec h3 { color: var(--text-2); }
+.ink-list { display: grid; gap: 8px; }
+.ink-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.ink-row img, .ink-row .noimg { width: 56px; height: 72px; object-fit: cover; border-radius: 7px; background: var(--bg); display: block; }
+.ink-row .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ink-row .m { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.ink-row .acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.ink-row .acts .inp { width: 110px; padding: 6px 10px; }
+.code { font: 500 12px var(--mono); padding: 2px 7px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line-2); color: var(--text); white-space: nowrap; }
+.code.big { font-size: 14px; padding: 4px 9px; }
+.inbox-card { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; padding: 12px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.inbox-card img, .inbox-card .noimg { width: 90px; height: 116px; object-fit: cover; border-radius: 8px; background: var(--bg); }
+.cands { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-top: 10px; }
+.cand { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; padding: 6px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); cursor: pointer; text-align: left; color: var(--text); font: inherit; }
+.cand:hover { border-color: var(--c-rev); }
+.cand img, .cand .noimg { width: 40px; height: 52px; object-fit: cover; border-radius: 5px; background: var(--card-2); }
+.cand .ct { display: -webkit-box; margin: 0; font-size: 12px; line-height: 1.3; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.cand .cm { font-size: 11px; color: var(--muted); }
+.addform { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); align-items: end; }
+.warnbox { border-color: rgba(245,165,36,.4) !important; background: linear-gradient(180deg, rgba(245,165,36,.06), transparent 60%), var(--panel); }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 2px; }
+details.ink-sec > summary { cursor: pointer; list-style: none; }
+details.ink-sec > summary::-webkit-details-marker { display: none; }
+@media (max-width: 600px) { .ink-row { grid-template-columns: 48px minmax(0, 1fr); } .ink-row .acts { grid-column: 1 / -1; justify-content: flex-start; } .inbox-card { grid-template-columns: 70px minmax(0, 1fr); } .inbox-card img, .inbox-card .noimg { width: 70px; height: 92px; } }
+
+/* ---------- voorraad als tegels ---------- */
+.stock-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0 12px; }
+.stock-bar .cnt { opacity: .65; font: 500 11px var(--mono); margin-left: 3px; }
+.stock-bar select.inp { padding: 7px 10px; width: auto; }
+.tiles { display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+@media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+.tile { position: relative; display: flex; flex-direction: column; background: var(--panel); transition: background .15s; }
+.tile:hover { background: #121216; }
+.tile.stale .tile-img { box-shadow: inset 0 0 0 2px rgba(245,165,36,.55); }
+.tile-img { position: relative; aspect-ratio: 3 / 4; background: var(--card-2); overflow: hidden; }
+.tile-img img, .tile-img .noimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+.tile:hover .tile-img img { transform: scale(1.04); }
+.tile-img::after { content: ""; position: absolute; inset: auto 0 0 0; height: 42%; background: linear-gradient(transparent, rgba(8,8,10,.85)); pointer-events: none; }
+.tstatus { position: absolute; top: 10px; right: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; font: 500 11px var(--font); padding: 2px 8px; border-radius: 6px; color: var(--text); background: rgba(8,8,10,.75); border: 1px solid var(--line-2); }
+.tstatus::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.tstatus.onderweg::before { background: var(--c-cost); }
+.tstatus.thuis::before { background: var(--c-accent); }
+.tstatus.online::before { background: var(--c-profit); }
+.tstatus.gereserveerd::before { background: var(--c-rev); }
+.tcode { position: absolute; top: 10px; left: 10px; bottom: auto; z-index: 1; font-size: 11.5px; background: rgba(8,8,10,.75); color: var(--text); }
+.tsrc { position: absolute; bottom: 10px; right: 10px; z-index: 1; font-size: 10.5px; color: var(--text-2); }
+.tile-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.tile .tt { font-weight: 500; font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+.tile .tm { font-size: 12px; color: var(--muted); }
+.tnums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.tnums span { display: block; font-size: 10.5px; color: var(--muted); }
+.tnums b { font: 500 12.5px var(--mono); }
+.tfoot { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); min-height: 28px; }
+.tprice { display: flex; gap: 6px; }
+.tprice .inp { padding: 6px 9px; font-size: 12.5px; min-width: 0; }
+
+/* ================= online: kansen (Graphite) ================= */
+.tstatus.top::before { background: var(--c-profit); }
+.tstatus.goed::before { background: var(--c-rev); }
+.tstatus.twijfel::before, .tstatus.sethelft::before { background: var(--c-cost); }
+.tstatus.nee::before { background: var(--c-neg); }
+.tile.kans.top .tile-img { box-shadow: inset 0 0 0 2px rgba(61,220,151,.45); }
+.tile.kans .tfoot { margin-top: auto; }
+.tile.kans .tfoot a.btn { text-decoration: none; }
+.kacts { display: inline-flex; gap: 6px; }
+.muted { color: var(--muted); }
+
+/* kosten t.o.v. verwachte verkoopprijs, met streepje op je grens */
+.kbar { position: relative; height: 6px; border-radius: 3px; background: var(--card-2); margin-top: 2px; }
+.kbar i { display: block; height: 100%; border-radius: 3px; }
+.kbar b { position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; border-radius: 1px; background: var(--text-2); }
+.kbarl { display: flex; justify-content: space-between; gap: 6px; font: 500 10.5px var(--mono); color: var(--muted); }
+.kbod { font-size: 12px; font-weight: 500; color: var(--c-cost); }
+.kr { margin: 0; padding-left: 15px; color: var(--text-2); font-size: 12px; line-height: 1.45; display: grid; gap: 2px; }
+
+/* sets: twee foto's naast elkaar */
+.sets { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
+.setcard { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 12px; padding: 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.setcard.goed { border-color: rgba(61,220,151,.35); }
+.setcard .tm { font-size: 12px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setcard .tnums { margin: 8px 0 4px; }
+.setimgs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-content: start; }
+.setimgs img, .setimgs .noimg { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 6px; background: var(--bg); display: block; }
+
+/* zelf een advertentie laten beoordelen */
+.kcheck { display: grid; gap: 8px; grid-template-columns: minmax(0, 3fr) minmax(90px, 1fr) minmax(70px, .7fr) auto; align-items: end; }
+.kres { margin-top: 10px; display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.zlist { margin: 0; padding-left: 18px; color: var(--text-2); font-size: 13px; line-height: 1.65; }
+.zlist b { color: var(--text); font-weight: 500; }
+details.ink-sec[open] > summary.ph { margin-bottom: 12px; }
+details.ink-sec > summary.ph { margin-bottom: 0; }
+@media (max-width: 520px) {
+  #v-kansen .ink-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  #v-kansen .ink-kpis .panel { padding: 12px 14px; }
+  #v-kansen .ink-kpis .v { font-size: 22px; }
+  #v-kansen .ink-kpis .s { font-size: 11px; }
+  /* twee smalle tegels naast elkaar: kolommen mogen krimpen, getallen iets kleiner */
+  #v-kansen .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #v-kansen .tile-body { padding: 8px 10px 10px; }
+  #v-kansen .tnums { gap: 2px; }
+  #v-kansen .tnums b { font-size: 11px; white-space: nowrap; }
+  #v-kansen .tfoot { flex-wrap: wrap; row-gap: 6px; }
+  #v-kansen .tfoot .btn { padding: 5px 9px; white-space: nowrap; }
+  #v-kansen .tnums span { font-size: 10px; }
+  #v-kansen .kbarl span + span { display: none; }
+  #v-kansen .tile .kr { display: none; }
+}
+@media (max-width: 640px) {
+  .kcheck { grid-template-columns: 1fr 1fr; }
+  .kcheck .wide, .kcheck button { grid-column: 1 / -1; }
+  .setcard { grid-template-columns: 96px minmax(0, 1fr); }
+}
+#v-kansen .kmax { width: 78px; padding: 5px 8px; text-align: right; font: 500 12.5px var(--mono); }
+
+/* ---------- statusregel: werkt de agent? ---------- */
+.kstatus { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 10px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-size: 12.5px; color: var(--text-2); }
+.kstatus i { font-style: normal; color: var(--muted); }
+.kdot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--c-cost); margin-right: 7px; vertical-align: 1px; }
+.kdot.aan { background: var(--c-profit); box-shadow: 0 0 0 3px rgba(61,220,151,.15); }
+
+/* ---------- swipe-stapel ---------- */
+.kdeck-wrap { display: grid; gap: 16px; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); align-items: start; }
+.kdeck { width: 100%; }
+.kdeck-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12.5px; color: var(--text-2); }
+.kdeck-top b { color: var(--text); font-weight: 600; }
+.kstapel { position: relative; }
+.kstapel.meer::before { content: ""; position: absolute; left: 14px; right: 14px; bottom: -8px; height: 40px; border-radius: 16px; background: var(--card-2); border: 1px solid var(--line); z-index: 0; }
+.kkaart { position: relative; z-index: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab; transition: transform .23s ease, opacity .23s ease; will-change: transform; }
+.kkaart.top { border-color: rgba(61,220,151,.45); }
+.kkaart.sleept { transition: none; cursor: grabbing; }
+.kkaart.naar-rechts { transform: translateX(130%) rotate(16deg) !important; opacity: 0; }
+.kkaart.naar-links { transform: translateX(-130%) rotate(-16deg) !important; opacity: 0; }
+.kkaart img { pointer-events: none; }
+.kstempel { position: absolute; top: 22px; z-index: 3; padding: 4px 12px; border: 2px solid; border-radius: 8px; font: 700 15px var(--font); letter-spacing: .08em; text-transform: uppercase; opacity: 0; pointer-events: none; background: rgba(8,8,10,.55); }
+.kstempel.bewaar { left: 18px; color: var(--c-profit); border-color: var(--c-profit); transform: rotate(-12deg); }
+.kstempel.weg { right: 18px; color: var(--c-neg); border-color: var(--c-neg); transform: rotate(12deg); }
+.kkaart[data-richting="rechts"] .kstempel.bewaar, .kkaart[data-richting="links"] .kstempel.weg { opacity: var(--sterkte, 0); }
+.kkaart.naar-rechts .kstempel.bewaar, .kkaart.naar-links .kstempel.weg { opacity: 1; }
+.kfoto { position: relative; aspect-ratio: 4 / 5; max-height: 44vh; width: 100%; background: var(--card-2); overflow: hidden; }
+.kfoto img, .kfoto .noimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.kgeenfoto { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+.kfoto::after { content: ""; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(transparent, rgba(8,8,10,.92)); pointer-events: none; }
+.kfoto .tstatus, .kfoto .tcode { z-index: 2; }
+.kfoto-onder { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 2; }
+.kwinst { font: 600 30px/1.1 var(--font); letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--text); }
+.kwinst.pos { color: var(--c-profit); }
+.kwinst-l { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.kbody { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 7px; }
+.ktitel { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.kbody .tm { font-size: 12.5px; color: var(--muted); }
+.kset { font-size: 12.5px; color: var(--text); padding: 8px 10px; border-radius: 8px; background: rgba(61,220,151,.08); border: 1px solid rgba(61,220,151,.25); }
+.kbron { font-size: 11px; color: var(--muted); }
+.kacties { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; gap: 10px; align-items: center; margin-top: 14px; }
+.krond { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); font-size: 20px; cursor: pointer; display: grid; place-items: center; transition: transform .1s, border-color .15s; }
+.krond:active { transform: scale(.94); }
+.krond.weg:hover { border-color: var(--c-neg); color: var(--c-neg); }
+.krond.bewaar:hover { border-color: var(--c-profit); color: var(--c-profit); }
+.kvinted { height: 44px; display: grid; place-items: center; text-decoration: none; text-align: center; border-radius: 10px; }
+.khint { margin-top: 10px; font-size: 11.5px; color: var(--muted); text-align: center; }
+.kleeg { text-align: center; padding: 32px 20px; display: grid; gap: 10px; justify-items: center; }
+.kleeg h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.kleeg p { margin: 0; color: var(--text-2); font-size: 13px; max-width: 340px; }
+.kleeg-i { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: var(--c-profit); background: rgba(61,220,151,.12); }
+
+/* ---------- bewaard, naast de stapel ---------- */
+.kzij { position: sticky; top: 16px; }
+.klijst { display: grid; gap: 6px; }
+.krij { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.krij img, .krij .noimg { width: 44px; height: 56px; object-fit: cover; border-radius: 6px; background: var(--bg); display: block; }
+.krij .t { font-size: 12.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.krij .m { font: 500 11.5px var(--mono); color: var(--text-2); margin-top: 2px; }
+.krij .acts { display: flex; gap: 4px; }
+.krij .acts .btn { padding: 4px 8px; text-decoration: none; }
+.krij .err { grid-column: 1 / -1; min-height: 0; margin: 0; }
+.kzij-sets { margin-top: 10px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(61,220,151,.3); background: rgba(61,220,151,.06); color: var(--text-2); font: 12.5px var(--font); cursor: pointer; }
+.kzij-sets b { color: var(--text); }
+
+@media (max-width: 1000px) {
+  .kdeck-wrap { grid-template-columns: minmax(0, 1fr); }
+  .kdeck { max-width: 440px; margin: 0 auto; }
+  .kzij { position: static; }
+}
+@media (max-width: 520px) {
+  .kwinst { font-size: 26px; }
+  .kfoto { aspect-ratio: 1 / 1; }
+}
+
+/* ---------- wat de agent leert ---------- */
+.kleer-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.kleer-lijst li { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--text-2); padding: 6px 8px; border-radius: 8px; background: var(--card-2); }
+.kleer-lijst b { font: 500 12px var(--mono); }
+.kleer-uit { margin-top: 8px; font-size: 12px; color: var(--muted); }
+.kleer-uit b { color: var(--text); }
+
+</style>
+</head>
+<body>
+<div id="loginScreen" hidden>
+  <form class="panel" id="loginForm" data-mode="login" novalidate>
+    <img src="apple-touch-icon.png" alt="" width="56" height="56" style="display:block;border-radius:13px;margin-bottom:16px">
+    <div class="kicker" style="margin-bottom:6px">Vintageton dashboard</div>
+    <h2 id="loginTitle">Inloggen</h2>
+    <p>Je gegevens staan veilig in je eigen database. Alleen jij kunt ze zien.</p>
+    <label class="field">E-mailadres<input id="loginEmail" type="email" autocomplete="email"></label>
+    <label class="field">Wachtwoord<input id="loginPass" type="password" autocomplete="current-password"></label>
+    <button class="btn primary" id="loginSubmit" type="submit" style="width:100%;height:42px">Inloggen</button>
+    <div class="err" id="loginErr"></div>
+    <button type="button" class="linkbtn" id="loginSwitch" style="margin-top:8px">Nog geen account? Maak er één aan</button>
+  </form>
+</div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><svg class="mark" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="mkR" x1="0.15" y1="1" x2="0.85" y2="0"><stop offset="0" stop-color="#7B8CFF"/><stop offset="1" stop-color="#3DDC97"/></linearGradient></defs><rect width="1024" height="1024" rx="230" fill="#16161B"/><circle cx="512" cy="512" r="292" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="80"/><path d="M512 220 A292 292 0 1 1 220 512" fill="none" stroke="url(#mkR)" stroke-width="80" stroke-linecap="round"/><path d="M424 446 L512 604 L600 446" fill="none" stroke="#fff" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="login">vintageton</span> <span class="crumb" id="crumb"></span></div>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div class="controls">
+      <div class="seg" id="years" role="group" aria-label="Jaar"></div>
+      <div class="seg" id="periods" role="group" aria-label="Periode"></div>
+    </div>
+  </div>
+
+  <div class="page-h"><div><h1 id="pageTitle"></h1><p id="pageSub"></p></div><div class="sync"><i></i><span id="updated"></span></div></div>
+
+  <!-- ============ OVERZICHT ============ -->
+  <section class="view" id="v-overzicht">
+    <div class="g12">
+      <div class="card kpi s3" id="k1"></div>
+      <div class="card kpi s3" id="k2"></div>
+      <div class="card kpi s3" id="k3"></div>
+      <div class="card kpi s3" id="k4"></div>
+
+      <div class="card s8">
+        <div class="ct"><h3 id="mainTitle">Omzet en winst per maand</h3><div class="lg" id="mainLegend"></div></div>
+        <div class="mchart" id="mainChart"></div>
+        <div class="note" style="margin-top:6px" id="mainHint">Klik op een maand voor de details rechts.</div>
+      </div>
+      <div class="card s4 mcard" id="monthCard"></div>
+
+      <div class="card s4"><div class="ct"><h3>Road to <span id="goalLabel"></span></h3><span class="r" id="goalPace"></span></div><div class="gauge" id="gauge"></div><div class="gstats" id="gstats"></div></div>
+      <div class="card s8"><div class="ct"><h3>Voorraad-pijplijn</h3><span class="r">van aankoop tot verkoop</span></div><div class="flow" id="flow"></div>
+        <div class="ct" style="margin:18px 0 6px"><h3>Online · vraagwaarde per merk</h3><span class="r" id="brandTotal"></span></div><div id="stockBrands"></div></div>
+
+      <div class="card s8 pad0" id="galCard"><div class="ct" style="padding:16px 18px 0"><h3>Etalage · meeste favorieten</h3><span class="r" id="galInfo"></span></div><div class="gal" id="gal" style="margin-top:12px"></div></div>
+      <div class="card s4" id="feedCard"><div class="ct"><h3>Actie nodig</h3><span class="r" id="feedCount"></span></div><div class="feed" id="feed"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ FINANCIËN ============ -->
+  <section class="view" id="v-financien">
+    <div class="kpis" id="finKpis"></div>
+    <div class="grid g2 row">
+      <div class="card">
+        <div class="ct"><h3>Omzet per maand</h3><div class="lg"><span><i style="background:var(--c-rev)"></i><span class="yCur"></span></span><span><i style="background:var(--c-ghost)"></i><span class="yPrev"></span></span></div></div>
+        <div class="chart"><canvas id="cYoy"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>Winst per maand</h3><div class="lg"><span><i style="background:var(--c-profit)"></i><span class="yCur"></span></span><span><i style="background:var(--c-ghost)"></i><span class="yPrev"></span></span></div></div>
+        <div class="chart"><canvas id="cYoyProfit"></canvas></div>
+      </div>
+      <div class="card"><div class="ct"><h3>Winstmarge</h3><span class="r">% van de omzet per maand</span></div><div class="chart"><canvas id="cMargin"></canvas></div></div>
+      <div class="card"><div class="ct"><h3>Gem. verkoopprijs</h3><span class="r">per verkocht item</span></div><div class="chart"><canvas id="cAvgPrice"></canvas></div></div>
+      <div class="card"><div class="ct"><h3>Verkochte items</h3><span class="r">per maand</span></div><div class="chart"><canvas id="cItemsM"></canvas></div></div>
+      <div class="card"><div class="ct"><h3>Uitbetalingen</h3><span class="r">van Vinted naar je bank</span></div><div class="chart"><canvas id="cPayout"></canvas></div></div>
+      <div class="card needs-buys">
+        <div class="ct"><h3>Omzet vs inkoop</h3><div class="lg"><span><i style="background:var(--c-rev)"></i>Omzet</span><span><i style="background:var(--c-cost)"></i>Inkoop</span></div></div>
+        <div class="chart"><canvas id="cRevCost"></canvas></div>
+      </div>
+      <div class="card needs-buys">
+        <div class="ct"><h3>Bijkomende inkoopkosten</h3><div class="lg"><span><i style="background:var(--c-cost)"></i>Verzending</span><span><i style="background:var(--c-accent)"></i>Service</span></div></div>
+        <div class="chart"><canvas id="cFees"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-inkoop"></section>
+  <section class="view" id="v-kansen"></section>
+
+  <!-- ============ MERKEN ============ -->
+  <section class="view" id="v-merken">
+    <div class="card">
+      <div class="ct"><h3>Merkenmatrix</h3><span class="r">rechts = verkoopt sneller · hoger = meer winst per stuk · grootte = omzet</span></div>
+      <div class="matrix"><canvas id="cMatrix"></canvas></div>
+      <div class="quad-legend" id="quadLegend"></div>
+    </div>
+    <div class="ct" style="margin:24px 0 12px"><h3>Merkkaarten</h3><span class="r" id="cardsDesc"></span></div>
+    <div class="cards" id="brandCards"></div>
+    <div style="text-align:center;margin-top:12px"><button class="btn" id="moreCards" hidden>Toon alle merken</button></div>
+    <div class="grid g3" style="margin-top:24px">
+      <div class="card"><div class="ct"><h3>Categorieën</h3><span class="r">verkochte items</span></div><div class="chart"><canvas id="cCats"></canvas></div></div>
+      <div class="card"><div class="ct"><h3>Maten</h3><span class="r">verkochte items</span></div><div class="chart"><canvas id="cSizes"></canvas></div></div>
+      <div class="card"><div class="ct"><h3>Prijsklassen</h3><span class="r">verkochte items</span></div><div class="chart"><canvas id="cPrice"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- ============ ADVERTENTIES ============ -->
+  <section class="view" id="v-voorraad">
+    <div class="kpis" id="stockKpis"></div>
+    <div class="grid g2 row">
+      <div class="card"><div class="ct"><h3>Leeftijd advertenties</h3><span class="r">hoe lang je actieve items al online staan</span></div><div class="chart"><canvas id="cStockAge"></canvas></div></div>
+      <div class="card"><div class="ct"><h3>Verkoopsnelheid</h3><span class="r">dagen van online zetten tot verkoop</span></div><div class="chart"><canvas id="cDays"></canvas></div></div>
+    </div>
+    <div class="card row">
+      <div class="ct"><h3>Aandacht nodig</h3><span class="r">actieve advertenties, langst online eerst, met een advies</span></div>
+      <div class="tablewrap"><table id="tStock"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ NOG NIET GEKOPPELD ============ -->
+  <section class="view" id="v-leeg">
+    <div class="card empty-state">
+      <div class="ic info" id="leegIcon"></div>
+      <h2 id="leegTitel"></h2>
+      <p>Dit onderdeel werkt met je losse verkopen, aankopen en advertenties uit Vinted. Je handmatige invoer bevat alleen maandtotalen. Zodra Vinted gekoppeld is, vult dit zich automatisch.</p>
+    </div>
+  </section>
+
+  <!-- ============ TRANSACTIES ============ -->
+  <section class="view" id="v-transacties">
+    <div class="card">
+      <div class="toolbar">
+        <div class="seg" id="txTabs"></div>
+        <input type="search" id="txSearch" placeholder="Zoek op titel, merk of gebruiker…">
+      </div>
+      <div class="tablewrap" style="max-height:640px"><table id="tTx"></table></div>
+      <div class="note" id="txNote"></div>
+    </div>
+  </section>
+</div>
+
+<script type="text/plain" id="appcode">
+const DATA = window.__DATA || null;
+
+// ================= helpers =================
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const C = { rev: css('--c-rev'), cost: css('--c-cost'), profit: css('--c-profit'), accent: css('--c-accent'), ghost: css('--c-ghost'), warn: css('--c-warn'), neg: css('--c-neg'), text: css('--text'), text2: css('--text-2'), muted: css('--muted'), line: css('--line'), line2: css('--line-2'), tipBg: css('--tip-bg'), font: css('--font') };
+const nf = (d) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = (v, d = 0) => v == null || !isFinite(v) ? '–' : nf(d).format(v);
+const eur2 = (v) => eur(v, 2);
+const num = (v) => v == null ? '–' : new Intl.NumberFormat('nl-NL').format(v);
+const pct = (v) => v == null || !isFinite(v) ? '–' : Math.round(v * 100) + '%';
+const kfmt = (v) => v >= 1000 ? (v / 1000).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + 'k' : String(Math.round(v));
+const sum = (a, f) => a.reduce((s, x) => s + (f(x) || 0), 0);
+const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const monthKey = (d) => d.slice(0, 7);
+const MONTHS = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+const MONTHS_FULL = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+const monthLabel = (k) => MONTHS[+k.slice(5, 7) - 1] + " '" + k.slice(2, 4);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const groupBy = (rows, f) => { const g = new Map(); for (const r of rows) { const k = f(r); if (!g.has(k)) g.set(k, []); g.get(k).push(r); } return g; };
+const alpha = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+// iconen (lijnstijl, 24×24)
+const ICONS = {
+  box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  up: '<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',
+  down: '<path d="M22 17 13.5 8.5 8.5 13.5 2 7"/><path d="M16 17h6v-6"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  arrow: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+};
+const icon = (n, size = 15) => `<svg class="ico" style="width:${size}px;height:${size}px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
+
+// kleine trendlijn als SVG
+function sparkSvg(values, color, stretch = false) {
+  const v = values.map((x) => x ?? 0); if (v.length < 2) return '';
+  const w = 96, h = 34, max = Math.max(...v), min = Math.min(0, ...v), r = max - min || 1;
+  const pts = v.map((x, i) => [i / (v.length - 1) * (w - 4) + 2, h - 3 - (x - min) / r * (h - 6)]);
+  const line = pts.map((p) => p.join(',')).join(' ');
+  const id = 'sg' + Math.random().toString(36).slice(2, 8);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" ${stretch ? 'preserveAspectRatio="none"' : ''}><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="${pts[0][0]},${h} ${line} ${pts.at(-1)[0]},${h}" fill="url(#${id})"/><polyline points="${line}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" ${stretch ? 'vector-effect="non-scaling-stroke"' : ''}/>
+    ${stretch ? '' : `<circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="2.5" fill="${color}"/>`}</svg>`;
+}
+
+const NOW = new Date(DATA.meta.exported_at);
+const TODAY = ymd(NOW);
+const daysSince = (iso) => (NOW - new Date(iso)) / 864e5;
+// retour en geannuleerd tellen niet mee in omzet en winst
+const sales = DATA.sales.filter((s) => s.status !== 'geannuleerd' && s.status !== 'retour');
+const buys = DATA.buys.filter((b) => b.status !== 'geannuleerd');
+const MANUAL = new Map((DATA.manual || []).map((m) => [m.maand, m]));
+const HAS_VINTED = !!DATA.meta.has_vinted;
+const VFIRST = [...DATA.sales, ...DATA.buys].map((r) => r.date.slice(0, 10)).sort()[0] || null;
+// Vanaf deze datum komt alles automatisch uit Vinted; daarvoor gelden de handmatige maandcijfers.
+const VFIRSTM = HAS_VINTED && DATA.meta.vinted_start ? DATA.meta.vinted_start.slice(0, 7) : (VFIRST ? VFIRST.slice(0, 7) : null);
+const FIRST = [VFIRST, ...[...MANUAL.keys()].map((k) => k + '-01')].filter(Boolean).sort()[0] || TODAY;
+
+// ================= periodes (vergelijking met dezelfde periode vorig jaar) =================
+const Y = NOW.getFullYear(), M = NOW.getMonth(), D = NOW.getDate();
+const back = (s) => `${+s.slice(0, 4) - 1}${s.slice(4)}`;
+const PERIODS = [
+  { id: 'm', label: 'Deze maand', from: ymd(new Date(Y, M, 1)), prevName: `${MONTHS[M]} ${Y - 1} (t/m de ${D}e)` },
+  { id: '3m', label: '3 mnd', from: ymd(new Date(Y, M - 2, 1)), prevName: `${MONTHS[(M + 10) % 12]}–${MONTHS[M]} ${Y - 1}` },
+  { id: 'y', label: String(Y), from: `${Y}-01-01`, prevName: `${Y - 1} t/m ${D} ${MONTHS[M]}` },
+  { id: '12m', label: '12 mnd', from: ymd(new Date(Y, M - 11, 1)), prevName: 'de 12 mnd daarvoor' },
+  { id: 'all', label: 'Alles', from: '0000-00-00', prevName: null },
+];
+PERIODS.forEach((p) => { p.to = TODAY; if (p.prevName) { p.pfrom = back(p.from); p.pto = back(TODAY); } });
+let period = PERIODS.find((p) => p.id === store.get('vd_period')) || PERIODS[0];
+const between = (r, a, b) => { const d = r.date.slice(0, 10); return d >= a && d <= b; };
+const inP = (r) => between(r, period.from, period.to);
+const inPrev = (r) => period.pfrom ? between(r, period.pfrom, period.pto) : false;
+const prevAvailable = () => !!period.pfrom && period.pfrom >= FIRST;
+
+function deltaBadge(cur, prev) {
+  if (!period.pfrom) return '';
+  if (!prevAvailable()) return `<span class="delta" title="Je account bestond toen nog niet (volledig)">geen vergelijking</span>`;
+  if (!prev) return cur > 0 ? `<span class="delta up" title="vs ${period.prevName}">nieuw</span>` : '';
+  const d = cur / prev - 1;
+  return `<span class="delta ${d >= 0 ? 'up' : 'down'}" title="vs ${period.prevName}: ${prev.toLocaleString('nl-NL', { maximumFractionDigits: 0 })}">${d >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(d * 100))}% vj</span>`;
+}
+function monthsRange(fromKey, toKey) {
+  const out = []; let [yy, mm] = fromKey.split('-').map(Number); const [ey, em] = toKey.split('-').map(Number);
+  while (yy < ey || (yy === ey && mm <= em)) { out.push(`${yy}-${String(mm).padStart(2, '0')}`); if (++mm > 12) { mm = 1; yy++; } }
+  return out;
+}
+const monthly = (rows, f) => { const g = groupBy(rows, (r) => monthKey(r.date)); return (k) => sum(g.get(k) || [], f); };
+
+function countUp(el, to, fmt, ms = 800) {
+  if (!el) return;
+  const from = el._v || 0; el._v = to; const t0 = performance.now();
+  const step = (t) => { const p = Math.min(1, (t - t0) / ms); el.textContent = fmt(from + (to - from) * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+// ================= Chart.js in Graphite-stijl =================
+Chart.defaults.font.family = C.font; Chart.defaults.font.size = 11.5; Chart.defaults.color = C.muted;
+const charts = {};
+const monoTicks = () => ({ family: '"Geist Mono", monospace', size: 10.5 });
+function tooltip(fmt, labelFn) {
+  return {
+    backgroundColor: C.tipBg, titleColor: C.text, bodyColor: C.text2, borderColor: C.line2, borderWidth: 1,
+    padding: 10, cornerRadius: 10, boxPadding: 5, titleFont: { weight: 600 }, bodyFont: { family: '"Geist Mono", monospace', size: 12 },
+    callbacks: { label: labelFn || ((c) => ` ${c.dataset.label ? c.dataset.label + '  ' : ''}${fmt(c.parsed[c.chart.options.indexAxis === 'y' ? 'x' : 'y'])}`) },
+  };
+}
+function bar(id, labels, datasets, { fmt = num, horizontal = false, stacked = false } = {}) {
+  charts[id]?.destroy();
+  const vAxis = { beginAtZero: true, stacked, grid: { color: C.line }, border: { display: false }, ticks: { callback: (v) => fmt(v), maxTicksLimit: 5, font: monoTicks() } };
+  const cAxis = { stacked, grid: { display: false }, border: { color: C.line2 }, ticks: { autoSkip: true, maxRotation: 0 } };
+  charts[id] = new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels, datasets: datasets.map((d) => ({ borderRadius: stacked ? 2 : 4, borderSkipped: 'start', maxBarThickness: horizontal ? 16 : 20, categoryPercentage: 0.72, barPercentage: 0.86, borderWidth: 0,
+      backgroundColor: d.color, hoverBackgroundColor: d.color, ...d })) },
+    options: {
+      indexAxis: horizontal ? 'y' : 'x', maintainAspectRatio: false, animation: { duration: 500, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: tooltip(fmt) },
+      scales: horizontal ? { x: vAxis, y: { ...cAxis, ticks: { color: C.text2 } } } : { x: cAxis, y: vAxis },
+    },
+  });
+}
+
+// ================= tabellen =================
+function table(id, cols, rows, sortKey, desc = true) {
+  const el = document.getElementById(id);
+  let key = sortKey, dir = desc ? -1 : 1;
+  function draw() {
+    const sorted = [...rows].sort((a, b) => { const va = a[key], vb = b[key]; if (va == null) return 1; if (vb == null) return -1; return (va > vb ? 1 : va < vb ? -1 : 0) * dir; });
+    el.innerHTML = '<thead><tr>' + cols.map((c) => `<th class="${c.num ? 'num' : ''}" data-k="${c.k}">${c.h}${c.k === key ? (dir < 0 ? ' ↓' : ' ↑') : ''}</th>`).join('') + '</tr></thead><tbody>' +
+      (sorted.length ? sorted.map((r) => '<tr>' + cols.map((c) => `<td class="${c.num ? 'num' : ''} ${c.cls || ''}">${c.f ? c.f(r[c.k], r) : esc(r[c.k])}</td>`).join('') + '</tr>').join('') : `<tr><td colspan="${cols.length}" style="color:var(--muted)">Geen gegevens in deze periode.</td></tr>`) + '</tbody>';
+    el.querySelectorAll('th').forEach((th) => th.onclick = () => { const k = th.dataset.k; if (k === key) dir = -dir; else { key = k; dir = -1; } draw(); });
+  }
+  draw();
+}
+
+// ================= berekeningen =================
+function brandStats(SI) {
+  const stockByBrand = groupBy(DATA.stock, (r) => r.brand || 'Onbekend');
+  return [...groupBy(SI, (r) => r.brand || 'Onbekend')].map(([brand, rs]) => {
+    const rev = sum(rs, (x) => x.price), c = sum(rs, (x) => x.cost), d = rs.map((x) => x.days).filter((v) => v != null);
+    return { brand, n: rs.length, rev, avg: rev / rs.length, avgCost: c / rs.length, profit: rev - c, ppi: (rev - c) / rs.length, margin: rev ? (rev - c) / rev : null, days: d.length ? Math.round(median(d)) : null, stock: (stockByBrand.get(brand) || []).length };
+  });
+}
+// KPI-kaart: label, waarde, chip/regel, kleur, optionele trendlijn
+const kpi = (label, value, sub, color, chip = '', spark = null) =>
+  `<div class="card kpi"><div class="ct"><h3><span class="dotc" style="background:${color}"></span>${label}</h3></div><div class="v">${value}</div><div class="row">${chip}<span>${sub}</span></div>${spark ? sparkSvg(spark, color) : ''}</div>`;
+const kpiInner = (label, value, sub, color, chip = '', spark = null) =>
+  `<div class="ct"><h3><span class="dotc" style="background:${color}"></span>${label}</h3></div><div class="v">${value}</div><div class="row">${chip}<span>${sub}</span></div>${spark ? sparkSvg(spark, color) : ''}`;
+
+// ================= maanddata: Vinted waar beschikbaar, anders handmatige invoer =================
+const tipRow = (k, v) => `<div class="r"><span>${k}</span><span>${v}</span></div>`;
+const mk = (yy, i) => `${yy}-${String(i + 1).padStart(2, '0')}`;
+const CUR = monthKey(TODAY), FIRSTM = monthKey(FIRST);
+const FULLM = FIRST.slice(8, 10) === '01' ? FIRSTM : (() => { const d = new Date(+FIRST.slice(0, 4), +FIRST.slice(5, 7), 1); return ymd(d).slice(0, 7); })();
+const DIM = new Date(Y, M + 1, 0).getDate();
+const vRev = monthly(sales, (x) => x.price), vProfit = monthly(sales, (x) => x.price - (x.cost || 0)), vCost = monthly(buys, (x) => x.paid);
+const vItems = monthly(sales, (x) => x.n), vItemsB = monthly(buys, (x) => x.n);
+const man = (k, f) => MANUAL.has(k) ? MANUAL.get(k)[f] : null;
+const fromVinted = (k) => !!VFIRSTM && k >= VFIRSTM;
+const mRev = (k) => fromVinted(k) ? vRev(k) : (man(k, 'omzet') ?? 0);
+const mProfit = (k) => fromVinted(k) ? vProfit(k) : (man(k, 'winst') ?? 0);
+const mCost = (k) => fromVinted(k) ? vCost(k) : null;            // inkoop per maand: alleen uit Vinted
+const mItems = (k) => fromVinted(k) ? vItems(k) : man(k, 'items'); // null = niet ingevuld
+const mItemsB = (k) => fromVinted(k) ? vItemsB(k) : null;
+const mPayout = (k) => man(k, 'uitbetaald');
+const mSrc = (k) => fromVinted(k) ? 'vinted' : MANUAL.has(k) ? 'handmatig' : null;
+const upToDay = (k, f) => sum(sales.filter((r) => monthKey(r.date) === k && r.date.slice(8, 10) <= TODAY.slice(8, 10)), f);
+const METRIC = { rev: [mRev, (x) => x.price], profit: [mProfit, (x) => x.price - (x.cost || 0)], items: [mItems, (x) => x.n] };
+const val = (k, m, partial) => partial && fromVinted(k) ? upToDay(k, METRIC[m][1]) : (METRIC[m][0](k) || 0);
+// Vergelijk maanden met vorig jaar: alleen als die maand toen volledig bestond; de lopende maand alleen met Vinted-data (per dag).
+const comparable = (k) => { const pk = `${+k.slice(0, 4) - 1}${k.slice(4)}`; return pk >= FULLM && mSrc(pk) && (k !== CUR || (fromVinted(k) && fromVinted(pk))); };
+function compare(ks, m) {
+  const c = ks.filter(comparable); if (!c.length) return null;
+  return { cur: sum(c, (k) => val(k, m, k === CUR)), prev: sum(c, (k) => val(`${+k.slice(0, 4) - 1}${k.slice(4)}`, m, k === CUR)), months: c };
+}
+const rangeLabel = (ks) => ks.length === 1 ? `${MONTHS[+ks[0].slice(5, 7) - 1]} ${+ks[0].slice(0, 4) - 1}` : `${MONTHS[+ks[0].slice(5, 7) - 1]}–${MONTHS[+ks.at(-1).slice(5, 7) - 1]} ${+ks.at(-1).slice(0, 4) - 1}`;
+function sumMonths(ks) {
+  const items = ks.map(mItems), itemsKnown = items.every((v) => v != null);
+  const costs = ks.map(mCost), costKnown = costs.some((v) => v != null);
+  const ik = ks.filter((k) => mItems(k) != null);
+  return { revenue: sum(ks, mRev), profit: sum(ks, mProfit), items: ik.length ? sum(items, (v) => v) : null, itemsKnown,
+    avgPrice: ik.length && sum(ik, mItems) ? sum(ik, mRev) / sum(ik, mItems) : null, cost: costKnown ? sum(costs, (v) => v) : null,
+    itemsB: costKnown ? sum(ks, mItemsB) : null, payout: sum(ks, (k) => mPayout(k)), manual: ks.some((k) => mSrc(k) === 'handmatig') };
+}
+const niceStep = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v))); const f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; };
+const pctDelta = (cur, prev, title = '') => {
+  if (prev == null) return '';
+  if (!prev) return cur > 0 ? `<span class="delta up" title="${title}">nieuw</span>` : '';
+  const d = cur / prev - 1; return `<span class="delta ${d >= 0 ? 'up' : 'down'}" title="${title}">${d >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(d * 100))}% vj</span>`;
+};
+const prevMonth = (k) => { const yy = +k.slice(0, 4), mm = +k.slice(5, 7); return mm === 1 ? `${yy - 1}-12` : `${yy}-${String(mm - 1).padStart(2, '0')}`; };
+const has = (k) => k >= FIRSTM && k <= CUR && !!mSrc(k);
+const exactShare = (k) => { const SI = sales.filter((s) => monthKey(s.date) === k).flatMap((s) => s.items); return SI.length ? SI.filter((x) => x.cost_src === 'koppeling').length / SI.length : null; };
+const STOCK = DATA.stock.filter((s) => !s.hidden && !s.draft);
+const V = DATA.voorraad || null;   // { onderweg:{n,inkoop}, thuis:{n,inkoop}, online:{n,vraag} } in de online versie
+
+const YEARS = []; for (let yy = +FIRST.slice(0, 4); yy <= Y; yy++) YEARS.push(yy);
+let heroYear = YEARS.includes(+store.get('vd_year')) ? +store.get('vd_year') : Y;
+let selMonth = null;
+
+// ================= OVERZICHT =================
+function renderOverview() {
+  const keys = MONTHS.map((_, i) => mk(heroYear, i)).filter(has);
+  if (!selMonth || !selMonth.startsWith(heroYear + '-') || !has(selMonth)) selMonth = heroYear === Y && has(CUR) ? CUR : keys.at(-1) || null;
+  document.getElementById('years').innerHTML = YEARS.map((v) => `<button data-y="${v}" aria-pressed="${v === heroYear}">${v}</button>`).join('');
+  renderKpis(keys);
+  drawMainChart();
+  if (selMonth) renderMonthCard(selMonth); else document.getElementById('monthCard').innerHTML = '<div class="ct"><h3>Geen gegevens</h3></div><p style="color:var(--text-2)">Er zijn nog geen maanden met omzet in dit jaar.</p>';
+  renderGauge();
+  renderPipeline();
+  renderGallery();
+  renderFeed();
+}
+
+function renderKpis(ks) {
+  const t = sumMonths(ks), closed = ks.filter((k) => k !== CUR);
+  const cmp = (m) => { const c = compare(ks, m); return c ? pctDelta(c.cur, c.prev, `t.o.v. ${rangeLabel(c.months)}`) : ''; };
+  const upto = heroYear === Y ? `t/m ${D} ${MONTHS[M]}` : `heel ${heroYear}`;
+  document.getElementById('k1').innerHTML = kpiInner(`Omzet ${heroYear}`, `<span id="kRev"></span>`, `${t.items == null ? '' : num(t.items) + ' items · '}${upto}`, C.rev, cmp('rev'), closed.map(mRev));
+  document.getElementById('k2').innerHTML = kpiInner(`Winst ${heroYear}`, `<span id="kProf"></span>`, t.manual ? 'deels geschat' : 'na inkoopwaarde', C.profit, `<span class="chip up">${pct(t.revenue ? t.profit / t.revenue : null)} marge</span>`, closed.map(mProfit));
+  document.getElementById('k3').innerHTML = kpiInner('Gem. verkoopprijs', eur2(t.avgPrice), `in ${heroYear}`, C.accent, '<span class="chip">per item</span>', closed.map((k) => mItems(k) ? mRev(k) / mItems(k) : null).filter((v) => v != null));
+  document.getElementById('k4').innerHTML = DATA.meta.balance != null
+    ? kpiInner('Vinted-saldo', eur2(DATA.meta.balance), DATA.meta.pending ? `+ ${eur2(DATA.meta.pending)} in behandeling` : 'om uit te betalen', C.cost, '<span class="chip">beschikbaar</span>')
+    : kpiInner(`Uitbetaald ${heroYear}`, eur(t.payout), 'naar je bankrekening', C.cost, '<span class="chip">totaal</span>');
+  countUp(document.getElementById('kRev'), t.revenue, (v) => eur(v));
+  countUp(document.getElementById('kProf'), t.profit, (v) => eur(v));
+}
+
+// hoofdgrafiek: omzet als vlak + lijn, winst als staven, inkoop als lijn (allemaal dezelfde euro-as)
+function drawMainChart() {
+  const el = document.getElementById('mainChart'); if (!el.clientWidth) return;
+  const yy = heroYear, keys = MONTHS.map((_, i) => mk(yy, i));
+  const rev = keys.map((k) => has(k) ? mRev(k) : null), prof = keys.map((k) => has(k) ? mProfit(k) : null), cost = keys.map((k) => has(k) ? mCost(k) : null);
+  const prevY = keys.map((k, i) => { const pk = mk(yy - 1, i); return pk >= FIRSTM && mSrc(pk) ? mRev(pk) : null; });
+  const proj = keys.map((k) => k === CUR && D < DIM && has(k) ? mRev(k) / D * DIM : null);
+  const ghostPts = prevY.filter((v) => v != null).length >= 2, costPts = cost.filter((v) => v != null).length;
+  const max = Math.max(1, ...[...rev, ...(ghostPts ? prevY : []), ...proj, ...cost].map((v) => v || 0));
+  const step = niceStep(max / 4), top = Math.ceil(max * 1.06 / step) * step;
+  const W = el.clientWidth, H = el.clientHeight, L = 44, R = 8, T = 12, B = 26, sw = (W - L - R) / 12;
+  const x = (i) => L + (i + .5) * sw, y = (v) => H - B - Math.max(0, v) / top * (H - B - T);
+  document.getElementById('mainTitle').textContent = `Omzet en winst per maand · ${yy}`;
+  document.getElementById('mainLegend').innerHTML = `<span><i style="background:var(--c-rev)"></i>Omzet</span><span><i style="background:var(--c-profit)"></i>Winst</span>${costPts ? '<span><i class="ln" style="background:var(--c-cost)"></i>Inkoop</span>' : ''}${ghostPts ? `<span><i class="ln" style="background:#5a5a66"></i>${yy - 1}</span>` : ''}${proj.some((v) => v) ? '<span><i style="background:repeating-linear-gradient(45deg,var(--c-rev) 0 2px,transparent 2px 4px)"></i>Prognose</span>' : ''}`;
+  let s = `<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${C.rev}" stop-opacity=".32"/><stop offset="1" stop-color="${C.rev}" stop-opacity="0"/></linearGradient>
+    <pattern id="hp" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="${C.rev}" stroke-width="1.2" opacity=".75"/></pattern></defs>`;
+  for (let v = 0; v <= top + 1e-9; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${C.line}"/><text x="${L - 8}" y="${y(v) + 3.5}" text-anchor="end" font-family="Geist Mono" font-size="10.5" fill="${C.muted}">${v ? kfmt(v) : '0'}</text>`;
+  const si = keys.indexOf(selMonth);
+  if (si >= 0) s += `<rect x="${x(si) - sw / 2 + 2}" y="${T - 4}" width="${sw - 4}" height="${H - B - T + 4}" rx="8" fill="rgba(139,156,255,.07)" stroke="rgba(139,156,255,.28)"/>`;
+  const bw = Math.min(16, sw * .34);
+  prof.forEach((v, i) => { if (v != null && v > 0) s += `<rect x="${x(i) - bw / 2}" y="${y(v)}" width="${bw}" height="${y(0) - y(v)}" rx="3" fill="${C.profit}" opacity="${keys[i] === selMonth || !selMonth ? .95 : .7}"/>`; });
+  if (ghostPts) { const gp = prevY.map((v, i) => v == null ? null : `${x(i)},${y(v)}`).filter(Boolean); s += `<polyline points="${gp.join(' ')}" fill="none" stroke="#5a5a66" stroke-width="1.5" stroke-linejoin="round"/>`; }
+  const pts = rev.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
+  if (pts.length > 1) {
+    const path = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
+    s += `<path d="${path} L${pts.at(-1)[0]},${y(0)} L${pts[0][0]},${y(0)} Z" fill="url(#ga)"/><path d="${path}" fill="none" stroke="${C.rev}" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+  proj.forEach((p, i) => { if (!p) return; s += `<rect x="${x(i) - 9}" y="${y(p)}" width="18" height="${Math.max(0, y(rev[i]) - y(p))}" rx="3" fill="url(#hp)"/><circle cx="${x(i)}" cy="${y(p)}" r="3.5" fill="var(--bg)" stroke="${C.rev}" stroke-width="1.5"/>`; });
+  if (costPts) {
+    const cp = cost.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
+    if (cp.length > 1) s += `<polyline points="${cp.map((p) => p.join(',')).join(' ')}" fill="none" stroke="${C.cost}" stroke-width="1.5" stroke-linejoin="round"/>`;
+    cp.forEach((p) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${C.cost}" stroke="var(--panel)" stroke-width="1.5"/>`; });
+  }
+  pts.forEach((p) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${C.rev}" stroke="var(--panel)" stroke-width="2"/>`; });
+  for (let i = 0; i < 12; i++) s += `<text x="${x(i)}" y="${H - 7}" text-anchor="middle" font-family="Geist" font-size="11" fill="${keys[i] === selMonth ? C.text : rev[i] != null ? C.text2 : '#3a3a44'}" font-weight="${keys[i] === selMonth ? 600 : 400}">${innerWidth < 600 ? MONTHS[i][0] : MONTHS[i]}</text>`;
+  s += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="${C.line2}" opacity="0"/>`;
+  keys.forEach((k, i) => { if (rev[i] != null) s += `<rect class="hit" data-i="${i}" x="${x(i) - sw / 2}" y="${T}" width="${sw}" height="${H - B - T}" fill="transparent"/>`; });
+  el.innerHTML = s + '</svg><div class="tip" id="mainTip"></div>';
+  const tip = el.querySelector('#mainTip'), cross = el.querySelector('#cross');
+  el.querySelectorAll('.hit').forEach((r) => {
+    const i = +r.dataset.i, k = keys[i];
+    r.onmousemove = () => {
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('opacity', 1);
+      tip.innerHTML = `<b>${MONTHS_FULL[i]} ${yy}${k === CUR ? ' · lopend' : ''}</b>${tipRow('Omzet', eur(rev[i]))}${tipRow('Winst', eur(prof[i]))}${tipRow('Marge', pct(rev[i] ? prof[i] / rev[i] : null))}${mItems(k) != null ? tipRow('Items', num(mItems(k))) : ''}${cost[i] != null ? tipRow('Inkoop', eur(cost[i])) : ''}${prevY[i] != null ? tipRow(`Omzet ${yy - 1}`, eur(prevY[i])) : ''}${proj[i] ? tipRow('Prognose', eur(proj[i])) : ''}`;
+      tip.classList.add('on');
+      tip.style.left = (x(i) > W - 210 ? x(i) - tip.offsetWidth - 14 : x(i) + 14) + 'px'; tip.style.top = '8px';
+    };
+    r.onmouseleave = () => { tip.classList.remove('on'); cross.setAttribute('opacity', 0); };
+    r.onclick = () => { selMonth = k; drawMainChart(); renderMonthCard(k); };
+  });
+}
+
+function renderMonthCard(k) {
+  const i = +k.slice(5, 7) - 1, yy = +k.slice(0, 4), t = sumMonths([k]), src = mSrc(k), isCur = k === CUR;
+  const proj = isCur && D < DIM ? t.revenue / D * DIM : null;
+  const pk = prevMonth(k), pRev = mSrc(pk) && pk >= FIRSTM ? mRev(pk) : null;
+  const ex = exactShare(k), c = compare([k], 'rev');
+  const best = fromVinted(k) ? brandStats(sales.filter((s) => monthKey(s.date) === k).flatMap((s) => s.items)).filter((b) => b.brand !== 'Onbekend').sort((a, b) => b.rev - a.rev)[0] : null;
+  const winstLabel = src === 'handmatig' ? 'Winst · geschat' : ex == null ? 'Winst' : ex === 1 ? 'Winst · 100% exact' : `Winst · ${Math.round(ex * 100)}% exact`;
+  const scale = Math.max(pRev || 0, proj || 0, t.revenue, 1);
+  const pay = mPayout(k);
+  document.getElementById('monthCard').innerHTML = `
+    <div class="ct"><h3 style="color:var(--text);font-weight:600;text-transform:capitalize">${MONTHS_FULL[i]} ${yy}</h3>${isCur ? `<span class="live">live · dag ${D}/${DIM}</span>` : `<span class="chip">${src === 'vinted' ? 'Vinted' : 'handmatig'}</span>`}</div>
+    <div class="v"><span id="mRev"></span></div>
+    <div class="sub">omzet${proj ? ` · prognose <b>${eur(proj)}</b>` : ''} ${c ? pctDelta(c.cur, c.prev, `t.o.v. ${rangeLabel(c.months)}`) : ''}</div>
+    ${pRev != null ? `<div class="meter"><i style="width:${t.revenue / scale * 100}%"></i>${proj ? `<u style="left:${t.revenue / scale * 100}%;width:${(proj - t.revenue) / scale * 100}%"></u>` : ''}<b style="left:${pRev / scale * 100}%"></b></div>
+      <div class="ml"><span>${isCur ? 'nu' : MONTHS_FULL[i]}</span><span>${MONTHS_FULL[+pk.slice(5, 7) - 1]} ${eur(pRev)}</span></div>` : ''}
+    <div class="list">
+      <div><span>${winstLabel}</span><span class="${t.profit < 0 ? 'neg' : 'pos'}">${eur2(t.profit)}</span></div>
+      <div><span>Marge</span><span>${pct(t.revenue ? t.profit / t.revenue : null)}</span></div>
+      <div><span>Verkocht</span><span>${t.items == null ? '–' : num(t.items) + ' items'}</span></div>
+      <div><span>Gem. verkoopprijs</span><span>${eur2(t.avgPrice)}</span></div>
+      ${t.cost != null ? `<div><span>Ingekocht</span><span>${eur2(t.cost)} · ${num(t.itemsB)} st</span></div>` : ''}
+      ${pay != null ? `<div><span>Uitbetaald</span><span>${eur(pay)}</span></div>` : ''}
+      ${best ? `<div><span>Beste merk</span><span style="font-family:var(--font)">${esc(best.brand)} · ${eur(best.rev)}</span></div>` : ''}
+    </div>
+    <div class="src">Bron: ${src === 'vinted' ? 'Vinted, automatisch bijgewerkt' : 'handmatige invoer · winst is een schatting'}</div>`;
+  countUp(document.getElementById('mRev'), t.revenue, (v) => eur2(v), 600);
+}
+
+function renderGauge() {
+  const goal = DATA.meta.goal || 50000;
+  const all = monthsRange(FIRSTM, CUR).filter((k) => mSrc(k));
+  const total = sum(all, mRev);
+  const last6 = all.filter((k) => k !== CUR).slice(-6), pace = last6.length ? sum(last6, mRev) / last6.length : 0;
+  const left = Math.max(0, goal - total), n = pace > 0 ? Math.ceil(left / pace) : null, eta = n != null ? new Date(Y, M + n, 1) : null;
+  const p = Math.min(1, total / goal), R = 110, cx = 140, cy = 130;
+  const pt = (a, r = R) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const [x0, y0] = pt(Math.PI), [x1, y1] = pt(Math.PI + Math.max(.001, p) * Math.PI), [xe, ye] = pt(2 * Math.PI);
+  let ticks = ''; for (let i = 0; i <= 10; i++) { const a = Math.PI + i / 10 * Math.PI, [ax, ay] = pt(a, R + 14), [bx, by] = pt(a, R + (i % 5 ? 18 : 23)); ticks += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="${C.line2}" stroke-width="1.5"/>`; }
+  document.getElementById('goalLabel').textContent = eur(goal);
+  document.getElementById('goalPace').textContent = `${eur(pace)}/mnd`;
+  document.getElementById('gauge').innerHTML = `<svg viewBox="0 0 280 150"><defs><linearGradient id="gg"><stop offset="0" stop-color="#5b6cf0"/><stop offset="1" stop-color="${C.profit}"/></linearGradient></defs>${ticks}
+    <path d="M${x0},${y0} A${R},${R} 0 0 1 ${xe},${ye}" fill="none" stroke="${C.line}" stroke-width="14" stroke-linecap="round"/>
+    <path d="M${x0},${y0} A${R},${R} 0 0 1 ${x1},${y1}" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round"/></svg>
+    <div class="c"><div class="v">${eur(total)}</div><div class="n">${(p * 100).toLocaleString('nl-NL', { maximumFractionDigits: 1 })}% van ${eur(goal)}</div></div>`;
+  document.getElementById('gstats').innerHTML = left <= 0 ? '<div style="grid-column:1/-1;text-align:center"><b class="pos">Doel bereikt!</b></div>'
+    : `<div><span>Nog te gaan</span><b>${eur(left)}</b></div><div><span>Tempo</span><b>${eur(pace)}</b></div><div><span>Doel bereikt</span><b>${eta ? MONTHS[eta.getMonth()] + ' ' + eta.getFullYear() : '–'}</b></div>`;
+}
+
+function renderPipeline() {
+  const vraag = sum(STOCK, (s) => s.price);
+  const stages = V
+    ? [['Onderweg', V.onderweg.n, `${eur(V.onderweg.inkoop)} inkoopwaarde`, C.cost], ['Thuis', V.thuis.n, V.thuis.n ? 'klaar om te plaatsen' : 'niets op de plank', C.accent], ['Online', V.online.n, `${eur(V.online.vraag)} vraagwaarde`, C.rev]]
+    : [['Onderweg', null, 'na Vinted-koppeling', C.cost], ['Thuis', null, 'na Vinted-koppeling', C.accent], ['Online', STOCK.length || null, STOCK.length ? `${eur(vraag)} vraagwaarde` : 'na Vinted-koppeling', C.rev]];
+  document.getElementById('flow').innerHTML = stages.map(([l, n, sub, c], i) => `${i ? `<div class="arrow">${icon('arrow', 14)}</div>` : ''}<div class="stage"><div class="l"><span class="dotc" style="background:${c}"></span>${l}</div><div class="v">${n == null ? '–' : num(n)}</div><div class="n">${sub}</div></div>`).join('');
+  const byBrand = [...groupBy(STOCK, (s) => s.brand || 'Overig')].map(([b, rs]) => ({ b, n: rs.length, v: sum(rs, (s) => s.price) })).sort((a, b) => b.v - a.v).slice(0, 6);
+  const bmax = Math.max(1, ...byBrand.map((r) => r.v));
+  document.getElementById('brandTotal').textContent = STOCK.length ? eur(vraag) : '';
+  document.getElementById('stockBrands').innerHTML = byBrand.map((r) => `<div class="brand-row"><span class="nm">${esc(r.b)}<small>${r.n}</small></span><span class="bar"><i style="width:${r.v / bmax * 100}%"></i></span><span class="val">${eur(r.v)}</span></div>`).join('')
+    || '<div class="note" style="margin:0">Nog geen advertenties ingelezen.</div>';
+}
+
+function renderGallery() {
+  const items = STOCK.filter((s) => s.photo).sort((a, b) => (b.favs || 0) - (a.favs || 0)).slice(0, 8);
+  const card = document.getElementById('galCard'), feed = document.getElementById('feedCard');
+  card.style.display = items.length ? '' : 'none';
+  feed.className = `card ${items.length ? 's4' : 's12'}`;
+  if (!items.length) return;
+  document.getElementById('galInfo').innerHTML = `${items.length} van ${STOCK.length} online${EXTRA.inkoop ? ` · <button class="linkbtn" id="toStock">alle voorraad ${icon('arrow', 12)}</button>` : ''}`;
+  document.getElementById('gal').innerHTML = items.map((it) => {
+    const age = it.listed ? Math.round(daysSince(it.listed)) : null, w = it.cost != null ? it.price - it.cost : null;
+    return `<div class="g"><img src="${esc(it.photo)}" alt="" loading="lazy">${it.code ? `<span class="code">${esc(it.code)}</span>` : ''}${age > 60 ? `<span class="age">${age}d</span>` : ''}
+      <div class="ov"><div class="t">${esc(it.title)}${it.size ? ' · ' + esc(it.size) : ''}</div><div class="m"><span>${eur2(it.price)} · ♥${it.favs || 0}</span>${w != null ? `<span class="${w < 0 ? 'neg' : 'pos'}">${w >= 0 ? '+' : ''}${eur2(w)}</span>` : ''}</div></div></div>`;
+  }).join('');
+  document.getElementById('toStock')?.addEventListener('click', () => showTab('inkoop'));
+}
+
+function renderFeed() {
+  const out = [];
+  if (V && V.thuis.n) out.push(['warn', 'box', `${V.thuis.n} items klaar om te plaatsen`, `Samen ${eur(V.thuis.inkoop)} inkoop. Zet "Ref K…" onderaan je beschrijving, dan koppelen ze vanzelf.`]);
+  const old = STOCK.filter((s) => s.listed && daysSince(s.listed) > 60).sort((a, b) => new Date(a.listed) - new Date(b.listed));
+  if (old.length) out.push(['bad', 'clock', `${old.length} items lang online`, `${esc(old[0].title)} staat al ${Math.round(daysSince(old[0].listed))} dagen online. Verlaag de prijs of plaats hem omhoog.`]);
+  const proj = has(CUR) ? mRev(CUR) / D * DIM : 0, pm = prevMonth(CUR), pr = mSrc(pm) ? mRev(pm) : 0;
+  const ly = `${Y - 1}-${String(M + 1).padStart(2, '0')}`, lyRev = mSrc(ly) && ly >= FULLM ? mRev(ly) : 0;
+  const ref = lyRev || pr, refName = lyRev ? `${MONTHS[M]} ${Y - 1}` : MONTHS_FULL[+pm.slice(5, 7) - 1];
+  if (has(CUR)) out.push([ref && proj < ref ? 'warn' : 'info', ref && proj < ref ? 'down' : 'up', `Tempo ${MONTHS_FULL[M]}`, `Op koers voor <b>${eur(proj)}</b> omzet${ref ? `, tegen ${eur(ref)} in ${refName}` : ''}.`]);
+  const ex = exactShare(CUR);
+  if (ex != null) out.push(['good', 'check', ex === 1 ? `Winst ${MONTHS_FULL[M]} 100% exact` : `Winst ${MONTHS_FULL[M]} ${Math.round(ex * 100)}% exact`, ex === 1 ? 'Alle verkopen zijn automatisch aan hun inkoop gekoppeld.' : 'Koppel de overige verkopen via het tabblad Voorraad voor een exacte winst.']);
+  if (!HAS_VINTED) out.push(['warn', 'alert', 'Winst is nu een schatting', 'Na de Vinted-koppeling wordt winst per item exact berekend uit je echte inkoopprijzen.']);
+  const good = brandStats(sales.filter((s) => s.date.slice(0, 4) === String(heroYear)).flatMap((s) => s.items)).filter((b) => b.n >= 3 && b.brand !== 'Onbekend');
+  const best = [...good].sort((a, b) => b.ppi / Math.max(b.days ?? 30, 3) - a.ppi / Math.max(a.days ?? 30, 3))[0];
+  if (best) out.push(['good', 'star', `Koop meer ${esc(best.brand)}`, `${eur2(best.ppi)} winst per stuk, verkocht in ${best.days ?? '?'} dagen (mediaan).`]);
+  const bestM = monthsRange(FIRSTM, CUR).filter((k) => mSrc(k) && k !== CUR).sort((a, b) => mRev(b) - mRev(a))[0];
+  if (bestM) out.push(['info', 'star', 'Beste maand ooit', `${MONTHS_FULL[+bestM.slice(5, 7) - 1]} ${bestM.slice(0, 4)}: ${eur(mRev(bestM))} omzet en ${eur(mProfit(bestM))} winst.`]);
+  const shown = out.slice(0, document.getElementById('galCard').style.display === 'none' ? 4 : 3);
+  document.getElementById('feedCount').textContent = shown.length;
+  document.getElementById('feed').innerHTML = shown.map(([tone, ic, t, p]) => `<div class="f"><span class="ic ${tone}">${icon(ic)}</span><div><b>${t}</b><p>${p}</p></div></div>`).join('');
+}
+
+// ================= FINANCIËN =================
+function renderFinance() {
+  const from = period.id === 'all' ? FIRSTM : [FIRSTM, monthKey(period.from)].sort()[1];
+  const ks = monthsRange(from, CUR).filter((k) => mSrc(k));
+  const t = sumMonths(ks);
+  const margin = t.revenue ? t.profit / t.revenue : null;
+  const d = (m) => { const c = period.id === 'all' ? null : compare(ks, m); return c && c.months.length === ks.length ? pctDelta(c.cur, c.prev, `t.o.v. ${rangeLabel(c.months)}`) : ''; };
+  const cItems = period.id === 'all' ? null : compare(ks, 'items'), cRev = period.id === 'all' ? null : compare(ks, 'rev');
+  const avgDelta = cItems && cRev && cItems.months.length === ks.length && cItems.cur && cItems.prev ? pctDelta(cRev.cur / cItems.cur, cRev.prev / cItems.prev) : '';
+  document.getElementById('finKpis').innerHTML = [
+    kpi('Omzet', eur(t.revenue), `${t.items == null ? '–' : num(t.items) + (t.itemsKnown ? '' : '*')} items`, C.rev, d('rev')),
+    kpi('Winst', eur(t.profit), t.manual ? 'deels geschat' : 'exact waar gekoppeld', C.profit, `<span class="chip up">${pct(margin)} marge</span>${d('profit')}`),
+    t.cost != null ? kpi('Inkoop', eur(t.cost), `${num(t.itemsB)} items · incl. kosten`, C.cost, '') : '',
+    kpi('Gem. verkoopprijs', eur2(t.avgPrice), t.itemsKnown ? 'per item' : 'maanden met items', C.accent, avgDelta),
+    kpi('Uitbetaald', eur(t.payout), 'naar je bank', C.cost, ''),
+    DATA.meta.balance != null ? kpi('Vinted-saldo', eur2(DATA.meta.balance), DATA.meta.pending ? `+ ${eur2(DATA.meta.pending)} onderweg` : 'beschikbaar', C.cost, '') : '',
+  ].join('');
+  document.querySelectorAll('.yCur').forEach((e) => e.textContent = Y);
+  document.querySelectorAll('.yPrev').forEach((e) => e.textContent = Y - 1);
+  const yk = (yy) => MONTHS.map((_, i) => mk(yy, i));
+  const known = (f) => (k) => mSrc(k) && k <= CUR ? f(k) : null;
+  bar('cYoy', MONTHS, [{ label: String(Y - 1), data: yk(Y - 1).map(known(mRev)), color: C.ghost }, { label: String(Y), data: yk(Y).map(known(mRev)), color: C.rev }], { fmt: eur });
+  bar('cYoyProfit', MONTHS, [{ label: String(Y - 1), data: yk(Y - 1).map(known(mProfit)), color: C.ghost }, { label: String(Y), data: yk(Y).map(known(mProfit)), color: C.profit }], { fmt: eur });
+  const L = ks.map(monthLabel);
+  bar('cMargin', L, [{ label: 'Marge', data: ks.map((k) => mRev(k) ? Math.round(mProfit(k) / mRev(k) * 100) : null), color: C.profit }], { fmt: (v) => v + '%' });
+  bar('cAvgPrice', L, [{ label: 'Gem. prijs', data: ks.map((k) => mItems(k) ? mRev(k) / mItems(k) : null), color: C.accent }], { fmt: eur });
+  bar('cItemsM', L, [{ label: 'Verkocht', data: ks.map(mItems), color: C.rev }], {});
+  bar('cPayout', L, [{ label: 'Uitbetaald', data: ks.map((k) => mPayout(k)), color: C.cost }], { fmt: eur });
+  document.querySelectorAll('.needs-buys').forEach((e) => e.style.display = HAS_VINTED ? '' : 'none');
+  if (HAS_VINTED) {
+    bar('cRevCost', L, [{ label: 'Omzet', data: ks.map(mRev), color: C.rev }, { label: 'Inkoop', data: ks.map((k) => mCost(k)), color: C.cost }], { fmt: eur });
+    const B = buys.filter((b) => ks.includes(monthKey(b.date)));
+    bar('cFees', L, [{ label: 'Verzending', data: ks.map(monthly(B, (x) => x.ship)), color: C.cost }, { label: 'Service', data: ks.map(monthly(B, (x) => x.fee)), color: C.accent }], { fmt: eur, stacked: true });
+  }
+}
+
+// ================= MERKEN: matrix + kaarten =================
+const QUADS = {
+  top: { name: 'Toppers', icon: '★', tip: 'snel + veel winst → meer inkopen', col: () => C.profit },
+  luc: { name: 'Lucratief, traag', icon: '◆', tip: 'veel winst maar traag → geduld of iets goedkoper', col: () => C.rev },
+  draai: { name: 'Snelle draaiers', icon: '↻', tip: 'snel maar weinig winst → prijs omhoog', col: () => C.warn },
+  vermijd: { name: 'Vermijden', icon: '!', tip: 'traag + weinig winst → niet meer inkopen', col: () => C.neg },
+};
+let showAllCards = false;
+function renderBrands(S) {
+  const SI = S.flatMap((s) => s.items);
+  const all = brandStats(SI).filter((b) => b.brand !== 'Onbekend');
+  const pts = all.filter((b) => b.n >= 2 && b.days != null);
+  const xMid = median(pts.map((b) => b.days)) ?? 14, yMid = median(pts.map((b) => b.ppi)) ?? 10;
+  const quad = (b) => b.days == null ? null : (b.ppi >= yMid ? (b.days <= xMid ? 'top' : 'luc') : (b.days <= xMid ? 'draai' : 'vermijd'));
+  all.forEach((b) => { b.q = b.n >= 2 ? quad(b) : null; });
+  const maxRev = Math.max(1, ...pts.map((b) => b.rev));
+
+  charts.cMatrix?.destroy();
+  const xs = pts.map((b) => b.days), ys = pts.map((b) => b.ppi);
+  const nice = (v, st) => Math.ceil(v / st) * st;
+  const xMax = nice(Math.max(10, ...xs) * 1.1, 5), yMin = -nice(-Math.min(0, ...ys) * 1.15, 5), yMax = nice(Math.max(5, ...ys) * 1.15, 5);
+  charts.cMatrix = new Chart(document.getElementById('cMatrix'), {
+    type: 'bubble',
+    data: { datasets: [{ data: pts.map((b) => ({ x: b.days, y: b.ppi, r: 7 + Math.sqrt(b.rev / maxRev) * 20, b })),
+      backgroundColor: pts.map((b) => alpha(QUADS[b.q].col(), 0.4)), borderColor: pts.map((b) => QUADS[b.q].col()), borderWidth: 1.5, hoverBorderWidth: 2.5 }] },
+    options: {
+      maintainAspectRatio: false, animation: { duration: 600 },
+      layout: { padding: { top: 10, right: 16 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: tooltip(null, (c) => { const b = c.raw.b; return [` ${b.brand} · ${QUADS[b.q].name}`, ` Winst/stuk  ${eur2(b.ppi)}`, ` Dagen       ${b.days}`, ` Omzet       ${eur(b.rev)} (${b.n} st)`, ` Marge       ${pct(b.margin)}`]; }),
+      },
+      scales: {
+        x: { reverse: true, min: 0, max: xMax, grid: { color: C.line }, border: { display: false }, title: { display: true, text: '← trager verkocht        dagen tot verkoop (mediaan)        sneller verkocht →', color: C.muted }, ticks: { font: monoTicks() } },
+        y: { min: yMin, max: yMax, grid: { color: C.line }, border: { display: false }, title: { display: true, text: 'winst per stuk', color: C.muted }, ticks: { callback: (v) => eur(v), font: monoTicks() } },
+      },
+    },
+    plugins: [{
+      id: 'quadrants',
+      beforeDatasetsDraw(ch) {
+        const { ctx, chartArea: a, scales: { x, y } } = ch; const px = x.getPixelForValue(xMid), py = y.getPixelForValue(yMid);
+        ctx.save();
+        const fill = (x0, y0, x1, y1, col) => { ctx.fillStyle = alpha(col, 0.05); ctx.fillRect(x0, y0, x1 - x0, y1 - y0); };
+        fill(px, a.top, a.right, py, C.profit); fill(a.left, a.top, px, py, C.rev); fill(px, py, a.right, a.bottom, C.warn); fill(a.left, py, px, a.bottom, C.neg);
+        ctx.strokeStyle = C.line2; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
+        ctx.font = `500 11px ${C.font}`; ctx.fillStyle = C.muted;
+        const lab = (t, xx, yy, al) => { ctx.textAlign = al; ctx.fillText(t, xx, yy); };
+        lab(`★ ${QUADS.top.name}`, a.right - 10, a.top + 16, 'right'); lab(`◆ ${QUADS.luc.name}`, a.left + 10, a.top + 16, 'left');
+        lab(`↻ ${QUADS.draai.name}`, a.right - 10, a.bottom - 10, 'right'); lab(`! ${QUADS.vermijd.name}`, a.left + 10, a.bottom - 10, 'left');
+        ctx.restore();
+      },
+      afterDatasetsDraw(ch) {
+        const { ctx } = ch; const meta = ch.getDatasetMeta(0);
+        ctx.save(); ctx.font = `500 12px ${C.font}`; ctx.fillStyle = C.text; ctx.textBaseline = 'middle';
+        meta.data.forEach((el, i) => { ctx.textAlign = 'left'; ctx.fillText(pts[i].brand, el.x + el.options.radius + 5, el.y); });
+        ctx.restore();
+      },
+    }],
+  });
+  document.getElementById('quadLegend').innerHTML = Object.entries(QUADS).map(([k, q]) => {
+    const names = all.filter((b) => b.q === k).sort((a, b) => b.rev - a.rev).map((b) => b.brand);
+    return `<div><span class="dot" style="background:${q.col()};margin-top:4px"></span><span><b>${q.icon} ${q.name}</b>${q.tip}${names.length ? `<br><span style="color:var(--text)">${esc(names.slice(0, 4).join(', '))}${names.length > 4 ? ` +${names.length - 4}` : ''}</span>` : ''}</span></div>`;
+  }).join('');
+
+  const last6 = monthsRange(monthKey(ymd(new Date(Y, M - 5, 1))), monthKey(TODAY));
+  const allSI = sales.flatMap((s) => s.items.map((it) => ({ ...it, date: s.date })));
+  const byBrandAll = groupBy(allSI, (r) => r.brand || 'Onbekend');
+  const sorted = [...all].sort((a, b) => b.rev - a.rev);
+  const shown = showAllCards ? sorted : sorted.slice(0, 8);
+  document.getElementById('cardsDesc').textContent = `${sorted.length} merken · gesorteerd op omzet · lijn = omzet laatste 6 maanden`;
+  document.getElementById('brandCards').innerHTML = shown.map((b) => {
+    const q = b.q ? QUADS[b.q] : null;
+    const badge = q ? `<span class="qbadge" style="color:${q.col()};background:${alpha(q.col(), 0.12)}">${q.icon} ${q.name}</span>` : `<span class="qbadge" style="color:var(--muted);background:var(--card-2)">te weinig data</span>`;
+    return `<div class="card bcard"><div class="hd"><span class="nm">${esc(b.brand)}</span>${badge}</div>
+      <div class="big">${eur(b.rev)}</div><div style="font-size:12px;color:var(--muted)">omzet · ${b.n} verkocht</div>
+      <div class="stats"><div>Winst/stuk<b class="${b.ppi < 0 ? 'neg' : ''}">${eur2(b.ppi)}</b></div><div>Marge<b>${pct(b.margin)}</b></div><div>Dagen<b>${b.days ?? '–'}</b></div>
+      <div>Gem. prijs<b>${eur2(b.avg)}</b></div><div>Gem. inkoop<b>${eur2(b.avgCost)}</b></div><div>Voorraad<b>${b.stock}</b></div></div>
+      ${sparkSvg(last6.map(monthly(byBrandAll.get(b.brand) || [], (x) => x.price)), q ? q.col() : C.muted, true)}</div>`;
+  }).join('') || '<div class="card" style="color:var(--muted)">Nog geen verkopen in deze periode.</div>';
+  const more = document.getElementById('moreCards');
+  more.hidden = sorted.length <= 8; more.textContent = showAllCards ? 'Toon minder' : `Toon alle ${sorted.length} merken`;
+  more.onclick = () => { showAllCards = !showAllCards; render(); };
+
+  const cats = [...groupBy(SI, (r) => r.cat)].map(([k, v]) => [k, v.length]).sort((a, b) => b[1] - a[1]).slice(0, 9);
+  bar('cCats', cats.map((c) => c[0]), [{ label: 'Items', data: cats.map((c) => c[1]), color: C.rev }], { horizontal: true });
+  const SO = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+  const sizes = [...groupBy(SI.filter((r) => r.size), (r) => r.size.toUpperCase())].map(([k, v]) => [k, v.length]).sort((a, b) => b[1] - a[1]).slice(0, 9)
+    .sort((a, b) => { const ia = SO.indexOf(a[0]), ib = SO.indexOf(b[0]); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || b[1] - a[1]; });
+  bar('cSizes', sizes.map((c) => c[0]), [{ label: 'Items', data: sizes.map((c) => c[1]), color: C.accent }]);
+  const PB = [[0, 10, '<€10'], [10, 20, '€10–20'], [20, 30, '€20–30'], [30, 40, '€30–40'], [40, 60, '€40–60'], [60, 1e9, '€60+']];
+  bar('cPrice', PB.map((b) => b[2]), [{ label: 'Items', data: PB.map(([a, b]) => SI.filter((s) => s.price >= a && s.price < b).length), color: C.rev }]);
+}
+
+// ================= ADVERTENTIES =================
+function renderStock(S) {
+  const st = STOCK.map((s) => ({ ...s, age: s.listed ? Math.round(daysSince(s.listed)) : null }));
+  const ages = st.map((s) => s.age).filter((d) => d != null);
+  const favs = sum(st, (s) => s.favs);
+  document.getElementById('stockKpis').innerHTML = [
+    kpi('Actieve advertenties', num(st.length), `${st.filter((s) => s.reserved).length} gereserveerd`, C.rev),
+    kpi('Vraagwaarde', eur(sum(st, (s) => s.price)), 'als alles verkoopt', C.accent),
+    kpi('Ingekocht, niet verkocht', num(DATA.meta.unsold_count), `ca. ${eur(DATA.meta.unsold_cost)} inkoopwaarde`, C.cost),
+    kpi('Gem. leeftijd', ages.length ? Math.round(sum(ages, (x) => x) / ages.length) + ' d' : '–', `${ages.filter((a) => a > 60).length} items > 60 dagen`, C.warn),
+  ].join('');
+  const AB = [[0, 7, '< 1 week'], [7, 30, '1–4 weken'], [30, 60, '1–2 mnd'], [60, 90, '2–3 mnd'], [90, 1e9, '3+ mnd']];
+  bar('cStockAge', AB.map((b) => b[2]), [{ label: 'Advertenties', data: AB.map(([a, b]) => ages.filter((d) => d >= a && d < b).length), color: C.warn }]);
+  const days = S.flatMap((s) => s.items).map((x) => x.days).filter((d) => d != null);
+  const DB = [[0, 3, '0–3'], [4, 7, '4–7'], [8, 14, '8–14'], [15, 30, '15–30'], [31, 60, '31–60'], [61, 1e9, '60+']];
+  bar('cDays', DB.map((b) => b[2] + ' d'), [{ label: 'Items', data: DB.map(([a, b]) => days.filter((d) => d >= a && d <= b).length), color: C.rev }]);
+  const favAvg = st.length ? favs / st.length : 0;
+  const advice = (s) => {
+    if (s.reserved) return '<span class="pos">gereserveerd</span>';
+    if (s.age > 60 && s.favs >= favAvg) return '<span class="warn">veel interesse → bied korting aan favorieten</span>';
+    if (s.age > 60) return '<span class="warn">prijs −15% of omhoog plaatsen</span>';
+    if (s.age > 30 && s.views < 30) return 'weinig views → nieuwe foto of titel';
+    if (s.age > 30) return 'omhoog plaatsen';
+    return '<span style="color:var(--muted)">loopt nog</span>';
+  };
+  const rows = st.sort((a, b) => (b.age || 0) - (a.age || 0)).map((s) => ({ ...s, advies: advice(s) }));
+  table('tStock', [
+    { k: 'title', h: 'Item', cls: 'title' }, { k: 'price', h: 'Prijs', num: 1, f: eur2 },
+    { k: 'age', h: 'Dagen', num: 1, f: (v) => `<span class="${v > 60 ? 'warn' : ''}">${v ?? '–'}</span>` },
+    { k: 'views', h: 'Views', num: 1 }, { k: 'favs', h: 'Favs', num: 1 }, { k: 'advies', h: 'Advies', f: (v) => v },
+  ], rows, 'age');
+}
+
+// ================= TRANSACTIES =================
+let txTab = 'sales';
+function renderTx() {
+  const q = document.getElementById('txSearch').value.toLowerCase();
+  const match = (r, extra) => !q || [r.title, r.brand, extra].join(' ').toLowerCase().includes(q);
+  const badge = (s) => `<span class="badge ${s}">${s}</span>`;
+  const note = document.getElementById('txNote');
+  if (txTab === 'sales') {
+    const rows = DATA.sales.filter(inP).filter((r) => match(r, r.buyer)).map((r) => ({ ...r, d: r.date.slice(0, 10), profit: r.status === 'geannuleerd' || r.status === 'retour' ? null : r.price - (r.cost || 0) }));
+    table('tTx', [
+      { k: 'd', h: 'Datum' }, { k: 'title', h: 'Titel', cls: 'title' }, { k: 'brand', h: 'Merk' }, { k: 'price', h: 'Prijs', num: 1, f: eur2 },
+      { k: 'cost', h: 'Inkoop', num: 1, f: (v, r) => v == null ? '–' : eur2(v) + (r.cost_src === 'schatting' ? '<span class="warn">*</span>' : '') },
+      { k: 'profit', h: 'Winst', num: 1, f: (v) => v == null ? '–' : `<span class="${v < 0 ? 'neg' : 'pos'}">${eur2(v)}</span>` },
+      { k: 'days', h: 'Dagen', num: 1, f: (v) => v ?? '–' }, { k: 'buyer', h: 'Koper', f: (v) => v ? '@' + esc(v) : '–' }, { k: 'status', h: 'Status', f: badge },
+    ], rows, 'd');
+    note.innerHTML = `${rows.length} verkopen · <span class="warn">*</span> inkoopprijs geschat (nog niet gekoppeld aan een aankoop)`;
+  } else if (txTab === 'buys') {
+    const rows = DATA.buys.filter(inP).filter((r) => match(r, r.seller)).map((r) => ({ ...r, d: r.date.slice(0, 10) }));
+    table('tTx', [
+      { k: 'd', h: 'Datum' }, { k: 'title', h: 'Titel', cls: 'title' }, { k: 'brand', h: 'Merk' }, { k: 'item', h: 'Item', num: 1, f: eur2 },
+      { k: 'ship', h: 'Verzend', num: 1, f: eur2 }, { k: 'fee', h: 'Service', num: 1, f: eur2 }, { k: 'paid', h: 'Totaal', num: 1, f: eur2 },
+      { k: 'sold_n', h: 'Verkocht', num: 1, f: (v, r) => `${v}/${r.n}` }, { k: 'seller', h: 'Verkoper', f: (v) => v ? '@' + esc(v) : '–' }, { k: 'status', h: 'Status', f: badge },
+    ], rows, 'd');
+    note.textContent = `${rows.length} aankopen · "Verkocht" = items uit deze aankoop die al verkocht zijn`;
+  } else {
+    const rows = [...groupBy(sales.filter(inP).filter((r) => match(r, r.buyer)), (s) => s.buyer || '?')].filter(([k]) => k !== '?')
+      .map(([k, v]) => ({ buyer: k, n: v.length, rev: sum(v, (x) => x.price), avg: sum(v, (x) => x.price) / v.length, last: v.map((x) => x.date).sort().pop().slice(0, 10) }));
+    table('tTx', [{ k: 'buyer', h: 'Koper', f: (v) => '@' + esc(v) }, { k: 'n', h: 'Bestellingen', num: 1 }, { k: 'rev', h: 'Omzet', num: 1, f: eur }, { k: 'avg', h: 'Gem. per order', num: 1, f: eur2 }, { k: 'last', h: 'Laatste' }], rows, 'n');
+    note.textContent = `${rows.length} kopers · ${rows.filter((r) => r.n > 1).length} kochten vaker dan één keer`;
+  }
+}
+
+// ================= navigatie & render =================
+const EXTRA = window.__EXTRA_TABS || {};  // extra tabbladen uit de online versie (Voorraad)
+const TABS = [['overzicht', 'Overzicht'], ['financien', 'Financiën'], ...Object.entries(EXTRA).map(([k, t]) => [k, t.label]), ['merken', 'Merken'], ['voorraad', EXTRA.inkoop ? 'Advertenties' : 'Voorraad'], ['transacties', 'Transacties']];
+const SUBS = {
+  financien: 'Omzet, winst, marge en uitbetalingen per maand.',
+  inkoop: 'Alles wat je bezit: onderweg, thuis en online. Koppel nieuwe advertenties en vul inkoopprijzen in.',
+  merken: 'Welke merken leveren het meest op en verkopen het snelst.',
+  voorraad: 'Hoe lang je advertenties online staan, met een advies per item.',
+  transacties: 'Alle verkopen, aankopen en kopers, doorzoekbaar.',
+};
+let tab = TABS.some(([k]) => k === location.hash.slice(1)) ? location.hash.slice(1) : 'overzicht';
+const tabsEl = document.getElementById('tabs');
+tabsEl.innerHTML = TABS.map(([k, l]) => `<button role="tab" data-t="${k}" aria-selected="${k === tab}">${l}</button>`).join('');
+function greeting() {
+  const h = new Date().getHours(), name = DATA.meta.name ? `, ${DATA.meta.name}` : '';
+  return `${h < 6 ? 'Goedenacht' : h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond'}${name}`;
+}
+function overviewIntro() {
+  if (!has(CUR)) return `Overzicht van je omzet, winst en voorraad.`;
+  const orders = fromVinted(CUR) ? sales.filter((s) => monthKey(s.date) === CUR).length : null;
+  const start = orders != null ? `${MONTHS_FULL[M][0].toUpperCase() + MONTHS_FULL[M].slice(1)} loopt: ${orders} ${orders === 1 ? 'verkoop' : 'verkopen'} in ${D} dagen` : `${MONTHS_FULL[M][0].toUpperCase() + MONTHS_FULL[M].slice(1)}: ${eur(mRev(CUR))} omzet tot nu toe`;
+  return V ? `${start}, ${V.onderweg.n} aankopen onderweg en ${V.thuis.n} items klaar om online te zetten.` : `${start}.`;
+}
+function showTab(k) {
+  tab = k; history.replaceState(null, '', '#' + k);
+  const label = TABS.find(([t]) => t === k)[1];
+  tabsEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', b.dataset.t === k));
+  document.getElementById('crumb').textContent = '/ ' + label.toLowerCase();
+  document.getElementById('pageTitle').textContent = k === 'overzicht' ? greeting() : label;
+  document.getElementById('pageSub').textContent = k === 'overzicht' ? overviewIntro() : SUBS[k] || '';
+  const leeg = !HAS_VINTED && ['merken', 'voorraad', 'transacties'].includes(k);
+  if (leeg) { document.getElementById('leegTitel').textContent = `${label} volgt na de Vinted-koppeling`; document.getElementById('leegIcon').innerHTML = icon('link', 20); }
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === (leeg ? 'v-leeg' : 'v-' + k)));
+  document.getElementById('years').style.display = k === 'overzicht' ? '' : 'none';
+  document.getElementById('periods').style.display = k === 'overzicht' || EXTRA[k] ? 'none' : '';
+  render(); scrollTo({ top: 0 });
+}
+tabsEl.onclick = (e) => { const b = e.target.closest('button'); if (b) showTab(b.dataset.t); };
+function render() {
+  const S = sales.filter(inP);
+  if (tab === 'overzicht') renderOverview();
+  if (tab === 'financien') renderFinance();
+  if (!HAS_VINTED && ['merken', 'voorraad', 'transacties'].includes(tab)) return;
+  if (tab === 'merken') renderBrands(S);
+  if (tab === 'voorraad') renderStock(S);
+  if (tab === 'transacties') renderTx();
+  EXTRA[tab]?.render();
+}
+
+document.getElementById('login').textContent = DATA.meta.login || 'vinted';
+const fmtTime = (d) => new Date(d).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+document.getElementById('updated').textContent = 'last_sync' in DATA.meta
+  ? (DATA.meta.last_sync ? 'gesynchroniseerd ' + fmtTime(DATA.meta.last_sync) : 'nog niet gesynchroniseerd')
+  : (HAS_VINTED ? 'Vinted-export ' : 'handmatige invoer · ') + fmtTime(NOW);
+if (DATA.meta.demo) document.body.insertAdjacentHTML('beforeend', '<div class="demo">DEMO-DATA</div>');
+document.getElementById('years').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; heroYear = +b.dataset.y; store.set('vd_year', heroYear); selMonth = null; renderOverview(); };
+const pe = document.getElementById('periods');
+pe.innerHTML = PERIODS.map((p) => `<button data-p="${p.id}" aria-pressed="${p === period}">${p.label}</button>`).join('');
+pe.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; period = PERIODS.find((p) => p.id === b.dataset.p); store.set('vd_period', period.id);
+  pe.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); render(); };
+const tt = document.getElementById('txTabs');
+tt.innerHTML = '<button data-t="sales" aria-pressed="true">Verkopen</button><button data-t="buys" aria-pressed="false">Aankopen</button><button data-t="buyers" aria-pressed="false">Kopers</button>';
+tt.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; txTab = b.dataset.t; tt.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderTx(); };
+document.getElementById('txSearch').oninput = renderTx;
+if (matchMedia('(max-width: 1100px)').matches) document.getElementById('mainHint').textContent = 'Tik op een maand voor de details hieronder.';
+let rsz; addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (tab === 'overzicht') drawMainChart(); }, 150); });
+(document.fonts?.ready || Promise.resolve()).then(() => showTab(tab));
+</script>
+<script type="module">
+// Tabblad Voorraad: alles wat je bezit als tegels met foto, plus koppelen, prijzen invullen en toevoegen.
+const sb = () => window.__sb;
+const el = () => document.getElementById('v-inkoop');
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const eur = (v) => v == null || !isFinite(v) ? '–' : new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
+const eur0 = (v) => v == null || !isFinite(v) ? '–' : new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+const img = (u, cls = '') => u ? `<img class="${cls}" src="${esc(u)}" alt="" loading="lazy">` : `<div class="noimg ${cls}"></div>`;
+const days = (d) => d ? Math.max(0, Math.floor((Date.now() - new Date(d)) / 864e5)) : null;
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null; };
+const norm = (s) => (s || '').toString().trim().toUpperCase();
+const STATUS = { onderweg: 'Onderweg', thuis: 'Thuis', online: 'Online' };
+
+let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false;
+
+async function load() {
+  const [ink, adv, sold] = await Promise.all([
+    sb().from('inkoop').select('*').order('created_at', { ascending: false }),
+    sb().from('advertenties').select('*').order('online_sinds', { ascending: false }),
+    sb().from('verkoop_items').select('vinted_item_id, verkopen(status)'),
+  ]);
+  for (const r of [ink, adv, sold]) if (r.error) throw new Error(r.error.message);
+  // verkochte advertenties zijn alleen relevant als de verkoop vanaf de startdatum in het systeem staat
+  state = { ink: ink.data, adv: adv.data, soldIds: new Set(sold.data.filter((r) => !['retour', 'geannuleerd'].includes(r.verkopen?.status)).map((r) => String(r.vinted_item_id))) };
+}
+
+// Kandidaten voor een advertentie: items die thuis/onderweg liggen en nog niet aan een advertentie hangen.
+function candidates(a, linkedIds) {
+  const brand = window.__findBrand(a.titel) || a.merk;
+  return state.ink.filter((i) => ['thuis', 'onderweg'].includes(i.status) && !linkedIds.has(i.id)).map((i) => {
+    let score = 0;
+    if (brand && (i.merk === brand || window.__findBrand(i.titel) === brand)) score += 3;
+    if (a.maat && i.maat && norm(a.maat) === norm(i.maat)) score += 2;
+    if (i.status === 'thuis') score += 0.5;
+    return { i, score };
+  }).sort((x, y) => y.score - x.score || new Date(y.i.created_at) - new Date(x.i.created_at));
+}
+
+// Eén tegel per voorraaditem
+function tile(i, a) {
+  const st = a?.status === 'gereserveerd' ? 'gereserveerd' : i.status;
+  const foto = a?.foto_url || i.foto_url;
+  const vraag = a && ['actief', 'gereserveerd', 'verborgen'].includes(a.status) ? +a.prijs : null;
+  const winst = vraag != null && i.inkoopprijs != null ? vraag - i.inkoopprijs : null;
+  const d = i.status === 'online' ? days(a?.online_sinds) : days(i.gekocht_op || i.created_at);
+  const oud = i.status === 'online' && d > 60;
+  return `<article class="tile ${oud ? 'stale' : ''}" data-id="${i.id}">
+    <div class="tile-img">${img(foto)}
+      <span class="tstatus ${st}">${st === 'gereserveerd' ? 'Gereserveerd' : STATUS[st]}</span>
+      <span class="code tcode">${esc(i.code)}</span>
+      ${foto ? `<span class="tsrc">${a?.foto_url ? 'jouw advertentie' : 'foto aankoop'}</span>` : ''}
+    </div>
+    <div class="tile-body">
+      <div class="tt" title="${esc(i.titel)}">${esc(i.titel)}</div>
+      <div class="tm">${esc([i.merk || window.__findBrand(i.titel), i.maat].filter(Boolean).join(' · ') || 'merk/maat onbekend')}</div>
+      <div class="tnums">
+        <div><span>Inkoop</span><b>${i.inkoopprijs != null ? eur(i.inkoopprijs) : '<span class="warn">?</span>'}</b></div>
+        <div><span>Vraag</span><b>${vraag != null ? eur(vraag) : '–'}</b></div>
+        <div><span>Winst</span><b class="${winst == null ? '' : winst < 0 ? 'neg' : 'pos'}">${winst != null ? eur(winst) : '–'}</b></div>
+      </div>
+      <div class="tfoot">
+        <span class="${oud ? 'warn' : ''}">${d == null ? '' : i.status === 'online' ? `${d} d online` : i.status === 'onderweg' ? `${d} d geleden gekocht` : `${d} d in huis`}${a && i.status === 'online' ? ` · ${a.favorieten || 0} ♥` : ''}</span>
+        ${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : ''}
+      </div>
+      ${i.inkoopprijs == null ? `<div class="tprice"><input class="inp" data-price="${i.id}" placeholder="inkoop € 0,00" inputmode="decimal"><button class="btn small" data-saveprice="${i.id}">Opslaan</button></div>` : ''}
+      <div class="err" data-err></div>
+    </div>
+  </article>`;
+}
+
+function view() {
+  const { ink, adv } = state;
+  const linkedIds = new Set(adv.filter((a) => a.inkoop_id && a.status !== 'verwijderd').map((a) => a.inkoop_id));
+  const advByInk = new Map(adv.filter((a) => a.inkoop_id && a.status !== 'verwijderd').map((a) => [a.inkoop_id, a]));
+  const byCode = new Map(ink.map((i) => [i.code, i]));
+  const stock = ink.filter((i) => ['onderweg', 'thuis', 'online'].includes(i.status));
+  const count = (s) => stock.filter((i) => i.status === s).length;
+  const zonderPrijs = stock.filter((i) => i.inkoopprijs == null);
+  const inbox = adv.filter((a) => !a.inkoop_id && (['actief', 'gereserveerd'].includes(a.status) || (a.status === 'verkocht' && state.soldIds.has(String(a.vinted_item_id)))));
+  const inkoopWaarde = stock.reduce((s, i) => s + +(i.inkoopprijs || 0), 0);
+  const vraagWaarde = stock.reduce((s, i) => { const a = advByInk.get(i.id); return s + (a && a.status !== 'verkocht' ? +(a.prijs || 0) : 0); }, 0);
+
+  // waarschuwingen: onbekende codes, dubbel gebruikte codes, codes van al verkochte items
+  const warns = [];
+  const codeUse = new Map();
+  for (const a of adv.filter((x) => x.gevonden_code && x.status !== 'verwijderd')) codeUse.set(a.gevonden_code, [...(codeUse.get(a.gevonden_code) || []), a]);
+  for (const [code, list] of codeUse) {
+    const i = byCode.get(code);
+    if (!i) warns.push(`Code <span class="code">${esc(code)}</span> staat in "${esc(list[0].titel)}", maar bestaat niet in je register. Tikfout?`);
+    else if (list.length > 1) warns.push(`Code <span class="code">${esc(code)}</span> staat in ${list.length} advertenties: ${list.map((a) => `"${esc(a.titel)}"`).join(', ')}.`);
+    else if (i.status === 'verkocht' && list[0].inkoop_id !== i.id) warns.push(`Code <span class="code">${esc(code)}</span> in "${esc(list[0].titel)}" hoort bij een item dat al verkocht is.`);
+  }
+
+  // filteren, zoeken en sorteren
+  const q = query.toLowerCase();
+  let shown = stock.filter((i) => filter === 'alles' || (filter === 'zonderprijs' ? i.inkoopprijs == null : i.status === filter))
+    .filter((i) => !q || [i.code, i.titel, i.merk, i.maat].join(' ').toLowerCase().includes(q));
+  const age = (i) => i.status === 'online' ? days(advByInk.get(i.id)?.online_sinds) ?? 0 : days(i.gekocht_op || i.created_at) ?? 0;
+  const profit = (i) => { const a = advByInk.get(i.id); return a && i.inkoopprijs != null ? a.prijs - i.inkoopprijs : -1e9; };
+  shown = shown.sort(sort === 'oud' ? (a, b) => age(b) - age(a) : sort === 'winst' ? (a, b) => profit(b) - profit(a) : sort === 'code' ? (a, b) => a.code.localeCompare(b.code) : (a, b) => new Date(b.gekocht_op || b.created_at) - new Date(a.gekocht_op || a.created_at));
+  const pill = (k, label, n) => `<button data-filter="${k}" aria-pressed="${filter === k}">${label} <span class="cnt">${n}</span></button>`;
+
+  el().innerHTML = `
+    ${flash ? `<div class="panel" style="margin-bottom:14px;padding:12px 16px"><span class="ok">${flash}</span></div>` : ''}
+    <div class="ink-kpis">
+      <div class="panel"><div class="kicker">Voorraad</div><div class="v">${stock.length}</div><div class="s">${count('onderweg')} onderweg · ${count('thuis')} thuis · ${count('online')} online</div></div>
+      <div class="panel"><div class="kicker">Inkoopwaarde</div><div class="v">${eur0(inkoopWaarde)}</div><div class="s">${zonderPrijs.length ? `<span class="warn">${zonderPrijs.length} items zonder prijs</span>` : 'alle prijzen bekend'}</div></div>
+      <div class="panel"><div class="kicker">Vraagwaarde online</div><div class="v">${eur0(vraagWaarde)}</div><div class="s">als alles verkoopt tegen vraagprijs</div></div>
+      <div class="panel ${inbox.length ? 'warnbox' : ''}"><div class="kicker">Te koppelen</div><div class="v">${inbox.length}</div><div class="s">advertenties zonder inkoop</div></div>
+    </div>
+
+    ${warns.length ? `<div class="panel ink-sec warnbox"><div class="ph"><h3>Controleer</h3></div><ul style="margin:0;padding-left:18px;color:var(--text-2)">${warns.map((w) => `<li style="margin:4px 0">${w}</li>`).join('')}</ul></div>` : ''}
+
+    ${inbox.length ? `<div class="panel ink-sec warnbox">
+      <div class="ph"><h3>Te koppelen</h3><span class="desc">nieuwe advertenties zonder (bekende) code: welk item uit je voorraad is het?</span></div>
+      <div class="ink-list">${inbox.map((a) => {
+        const c = candidates(a, linkedIds);
+        return `<div class="inbox-card" data-adv="${a.vinted_item_id}">${img(a.foto_url)}
+          <div style="min-width:0"><div style="font-weight:600">${esc(a.titel)}</div>
+            <div style="font-size:12.5px;color:var(--muted)">${esc([a.merk, a.maat].filter(Boolean).join(' · '))} · ${eur(a.prijs)} · ${a.status === 'verkocht' ? '<span class="warn">al verkocht</span>' : `${days(a.online_sinds) ?? '?'} dagen online`}${a.gevonden_code ? ` · code in tekst: <span class="code">${esc(a.gevonden_code)}</span>` : ''}</div>
+            ${c.length ? `<div class="cands">${c.slice(0, 6).map(({ i, score }) => `<button class="cand" data-link="${i.id}">${img(i.foto_url)}<span><span class="ct">${esc(i.titel)}</span><span class="cm"><span class="code">${esc(i.code)}</span> ${esc(i.maat || '')} ${score >= 5 ? '· beste match' : ''}</span></span></button>`).join('')}</div>
+              ${c.length > 6 ? `<select class="inp" data-pick style="margin-top:8px;max-width:360px"><option value="">… of kies uit alle ${c.length} items</option>${c.map(({ i }) => `<option value="${i.id}">${esc(i.code)} · ${esc(i.titel)} ${esc(i.maat || '')}</option>`).join('')}</select>` : ''}`
+              : '<div class="empty">Geen items thuis of onderweg om aan te koppelen.</div>'}
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px"><span style="font-size:12px;color:var(--muted)">Elders gekocht? Inkoopprijs:</span>
+              <input class="inp" data-newprice placeholder="€ 0,00" inputmode="decimal" style="width:110px;padding:7px 10px"><button class="btn small" data-newlink>Nieuw item + koppelen</button></div>
+            <div class="err" data-err></div>
+          </div></div>`;
+      }).join('')}</div>
+    </div>` : ''}
+
+    <div class="stock-bar">
+      <div class="seg" id="stockFilter">${pill('alles', 'Alles', stock.length)}${pill('onderweg', 'Onderweg', count('onderweg'))}${pill('thuis', 'Thuis', count('thuis'))}${pill('online', 'Online', count('online'))}${zonderPrijs.length ? pill('zonderprijs', 'Zonder prijs', zonderPrijs.length) : ''}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="search" id="stockSearch" placeholder="Zoek op code, merk of titel…" value="${esc(query)}">
+        <select class="inp" id="stockSort" style="width:auto">
+          <option value="nieuw" ${sort === 'nieuw' ? 'selected' : ''}>Nieuwste eerst</option>
+          <option value="oud" ${sort === 'oud' ? 'selected' : ''}>Langst in voorraad</option>
+          <option value="winst" ${sort === 'winst' ? 'selected' : ''}>Hoogste verwachte winst</option>
+          <option value="code" ${sort === 'code' ? 'selected' : ''}>Op code</option>
+        </select>
+        <button class="btn" id="toggleAdd">${showAdd ? '× Sluiten' : '+ Voorraad toevoegen'}</button>
+      </div>
+    </div>
+
+    ${showAdd ? `<div class="panel ink-sec">
+      <div class="ph"><h3>Voorraad toevoegen</h3><span class="desc">voor items die je niet op Vinted kocht of die al thuis lagen · je krijgt direct een code</span></div>
+      <form class="addform" id="addForm">
+        <label class="field" style="grid-column:span 2">Omschrijving<input name="titel" placeholder="bv. Ralph Lauren trui navy"></label>
+        <label class="field">Merk<input name="merk" placeholder="bv. Ralph Lauren"></label>
+        <label class="field">Maat<input name="maat" placeholder="bv. M"></label>
+        <label class="field">Inkoopprijs<input name="prijs" placeholder="€ 0,00" inputmode="decimal"></label>
+        <label class="field">Gekocht op<input name="datum" type="date" value="${new Date().toISOString().slice(0, 10)}"></label>
+        <button class="btn primary" type="submit" style="height:42px">Toevoegen</button>
+      </form>
+      <div class="err" id="addErr"></div>
+    </div>` : ''}
+
+    <div class="tiles">${shown.map((i) => tile(i, advByInk.get(i.id))).join('') || '<div class="empty">Geen items in deze selectie.</div>'}</div>
+    ${zonderPrijs.length && shown.some((i) => i.inkoopprijs == null) ? `<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn primary" id="saveAllPrices">Alle ingevulde prijzen opslaan</button><span class="err" id="priceErr"></span></div>` : ''}
+    <p class="note">Tip: zet bij een nieuwe advertentie <b>Ref ${stock.find((i) => i.status === 'thuis') ? esc(stock.find((i) => i.status === 'thuis').code) : 'K0001'}</b> als laatste regel in de beschrijving, dan koppelt het vanzelf bij de volgende synchronisatie.</p>`;
+  bind();
+}
+
+// ---------- acties ----------
+async function linkAdvert(advId, inkId) {
+  const a = state.adv.find((x) => String(x.vinted_item_id) === String(advId));
+  const r1 = await sb().from('advertenties').update({ inkoop_id: inkId, koppeling: 'bevestigd' }).eq('vinted_item_id', advId);
+  if (r1.error) throw new Error(r1.error.message);
+  const r2 = await sb().from('inkoop').update({ status: a?.status === 'verkocht' ? 'verkocht' : 'online' }).eq('id', inkId);
+  if (r2.error) throw new Error(r2.error.message);
+}
+async function refresh(msg) { flash = msg || ''; await load(); view(); }
+function showErr(node, msg) { const e = node.closest('.tile, .inbox-card')?.querySelector('[data-err]'); if (e) e.textContent = msg; }
+
+function bind() {
+  const root = el();
+  root.querySelectorAll('#stockFilter [data-filter]').forEach((b) => b.onclick = () => { filter = b.dataset.filter; flash = ''; view(); });
+  const search = root.querySelector('#stockSearch');
+  search.oninput = () => { query = search.value; const pos = search.selectionStart; flash = ''; view(); const s2 = el().querySelector('#stockSearch'); s2.focus(); s2.setSelectionRange(pos, pos); };
+  root.querySelector('#stockSort').onchange = (e) => { sort = e.target.value; flash = ''; view(); };
+  root.querySelector('#toggleAdd').onclick = () => { showAdd = !showAdd; flash = ''; view(); };
+
+  root.querySelectorAll('.inbox-card').forEach((card) => {
+    const advId = card.dataset.adv, err = card.querySelector('[data-err]');
+    const go = async (inkId) => { try { await linkAdvert(advId, inkId); const i = state.ink.find((x) => x.id === inkId); await refresh(`Gekoppeld aan ${i?.code}. Tip: zet "Ref ${i?.code}" in de beschrijving.`); } catch (e) { err.textContent = e.message; } };
+    card.querySelectorAll('[data-link]').forEach((b) => b.onclick = () => go(b.dataset.link));
+    card.querySelector('[data-pick]')?.addEventListener('change', (e) => e.target.value && go(e.target.value));
+    card.querySelector('[data-newlink]').onclick = async () => {
+      const prijs = num(card.querySelector('[data-newprice]').value);
+      if (prijs == null) { err.textContent = 'Vul een geldige inkoopprijs in, bijvoorbeeld 12,50.'; return; }
+      err.textContent = '';
+      const a = state.adv.find((x) => String(x.vinted_item_id) === String(advId));
+      const { data, error } = await sb().from('inkoop').insert({ bron: 'handmatig', titel: a.titel, merk: window.__findBrand(a.titel) || a.merk, maat: a.maat, foto_url: a.foto_url, inkoopprijs: prijs, status: 'thuis', gekocht_op: new Date().toISOString() }).select().single();
+      if (error) { err.textContent = error.message; return; }
+      try { await linkAdvert(advId, data.id); await refresh(`Nieuw item ${data.code} aangemaakt en gekoppeld.`); } catch (e) { err.textContent = e.message; }
+    };
+  });
+  root.querySelectorAll('[data-binnen]').forEach((b) => b.onclick = async () => {
+    const { error } = await sb().from('inkoop').update({ status: 'thuis' }).eq('id', b.dataset.binnen);
+    if (error) { showErr(b, error.message); return; }
+    const i = state.ink.find((x) => x.id === b.dataset.binnen);
+    await refresh(`${i.code} staat nu op "thuis". Schrijf ${i.code} op een label bij het item.`);
+  });
+  const savePrice = async (id) => {
+    const v = num(root.querySelector(`[data-price="${id}"]`).value);
+    if (v == null) return false;
+    const { error } = await sb().from('inkoop').update({ inkoopprijs: v }).eq('id', id);
+    if (error) throw new Error(error.message);
+    return true;
+  };
+  root.querySelectorAll('[data-saveprice]').forEach((b) => b.onclick = async () => {
+    try { if (!(await savePrice(b.dataset.saveprice))) { showErr(b, 'Vul een geldig bedrag in, bijvoorbeeld 12,50.'); return; } await refresh('Inkoopprijs opgeslagen.'); } catch (e) { showErr(b, e.message); }
+  });
+  root.querySelector('#saveAllPrices')?.addEventListener('click', async () => {
+    const ids = [...root.querySelectorAll('[data-price]')].filter((i) => i.value.trim()).map((i) => i.dataset.price);
+    const bad = ids.filter((id) => num(root.querySelector(`[data-price="${id}"]`).value) == null);
+    const pe = root.querySelector('#priceErr');
+    if (!ids.length || bad.length) { pe.textContent = !ids.length ? 'Vul eerst minstens één prijs in.' : 'Een of meer bedragen zijn ongeldig (gebruik bv. 12,50).'; return; }
+    try { for (const id of ids) await savePrice(id); await refresh(`${ids.length} inkoopprijzen opgeslagen.`); } catch (e) { pe.textContent = e.message; }
+  });
+  root.querySelector('#addForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target), err = root.querySelector('#addErr');
+    const titel = (f.get('titel') || '').trim(), prijs = num(f.get('prijs'));
+    if (!titel) { err.textContent = 'Vul een omschrijving in.'; return; }
+    if (prijs == null) { err.textContent = 'Vul een geldige inkoopprijs in, bijvoorbeeld 12,50.'; return; }
+    err.textContent = '';
+    const { data, error } = await sb().from('inkoop').insert({ bron: 'handmatig', titel, merk: (f.get('merk') || '').trim() || window.__findBrand(titel), maat: (f.get('maat') || '').trim() || null, inkoopprijs: prijs, status: 'thuis', gekocht_op: f.get('datum') ? new Date(f.get('datum')).toISOString() : new Date().toISOString() }).select().single();
+    if (error) { err.textContent = error.message; return; }
+    showAdd = false;
+    await refresh(`Toegevoegd als ${data.code}. Schrijf ${data.code} op een label en zet "Ref ${data.code}" in je advertentie.`);
+  });
+}
+
+window.__renderInkoop = async function renderInkoop() {
+  try { if (!state || !flash) await load(); view(); flash = ''; }
+  catch (e) { el().innerHTML = `<div class="panel"><span class="err">Kon je voorraad niet laden: ${esc(e.message)}</span></div>`; }
+};
+
+</script>
+<script type="module">
+// Tabblad Kansen: Vinted-advertenties uit je zoekalerts en uit de Chrome-extensie, beoordeeld tegen je eigen
+// verkopen, voorraad en maxima. Je loopt ze één voor één door als een stapel kaarten: veeg naar rechts om te
+// bewaren, naar links om weg te doen. De beoordeling zelf gebeurt in de database (kans_beoordeel).
+const sb = () => window.__sb;
+const el = () => document.getElementById('v-kansen');
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const eur = (v) => v == null || !isFinite(v) ? '–' : new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
+const eur0 = (v) => v == null || !isFinite(v) ? '–' : new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+const img = (u) => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" draggable="false">` : '<div class="noimg"></div>';
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null; };
+// alleen echte Vinted-links tonen
+const vinted = (u) => /^https:\/\/(www\.)?vinted\.[a-z.]{2,6}\//.test(u || '') ? u : null;
+const geleden = (d) => {
+  if (!d) return null;
+  const m = Math.max(0, Math.round((Date.now() - new Date(d)) / 6e4));
+  return m < 60 ? `${m} min geleden` : m < 1440 ? `${Math.round(m / 60)} uur geleden` : `${Math.round(m / 1440)} d geleden`;
+};
+const OORDEEL = { top: 'Top', goed: 'Goed', twijfel: 'Twijfel', sethelft: 'Set-helft', nee: 'Nee', onbekend: 'Onbekend' };
+const RANG = { top: 0, goed: 1, sethelft: 2, twijfel: 3, onbekend: 4, nee: 5 };
+const BRON = { zoekalert: 'zoekalert', extensie: 'extensie', handmatig: 'zelf toegevoegd', prijsverlaging: 'prijsverlaging' };
+const KLEUR = { zwart: 'Zwarte', grijs: 'Grijze', wit: 'Witte', groen: 'Groene', blauw: 'Blauwe', navy: 'Navy', beige: 'Beige', bruin: 'Bruine', rood: 'Rode', roze: 'Roze', paars: 'Paarse', geel: 'Gele' };
+const BEKIJKEN = ['top', 'goed', 'sethelft', 'twijfel'];
+
+let st = null, filter = 'swipe', flash = '', fout = '', check = null, invoer = { titel: '', prijs: '', maat: '' }, tabelOpen = false;
+let undo = [], bezig = false;
+
+async function load() {
+  const { data: { session } } = await sb().auth.getSession();
+  const uid = session.user.id;
+  const [k, prof, sets, alert, cfg, eigen, termen, log, leer, uitkomst] = await Promise.all([
+    sb().from('kansen').select('*').order('gevonden_op', { ascending: false }).limit(400),
+    sb().from('v_inkoopprofiel').select('*'),
+    sb().rpc('kans_sets', { p_user: uid }),
+    sb().from('vinted_mails').select('ontvangen_op, kans_resultaat').not('kans_verwerkt_op', 'is', null).order('ontvangen_op', { ascending: false }).limit(1),
+    sb().rpc('kans_cfg', { p_user: uid }),
+    sb().from('kans_maxprijs').select('merk, soort, max_vraagprijs'),
+    sb().from('kans_zoektermen').select('zoekterm, max_prijs, actief').order('zoekterm'),
+    sb().from('sync_log').select('tijd, opmerking, fout').order('tijd', { ascending: false }).limit(1),
+    sb().from('v_kans_leer').select('kenmerk, waarde, bewaard, weg'),
+    sb().from('v_kans_uitkomst').select('winst_voorspeld, winst_echt'),
+  ]);
+  for (const r of [k, prof, sets, alert, cfg, eigen, termen, log, leer, uitkomst]) if (r.error) throw new Error(r.error.message);
+  st = { uid, kansen: k.data, profiel: prof.data, sets: sets.data || [], alert: alert.data[0] || null, cfg: cfg.data[0], eigen: eigen.data, termen: termen.data, log: log.data[0] || null, leer: leer.data, uitkomst: uitkomst.data };
+}
+
+// kosten als deel van de verwachte verkoopprijs, met een streepje op jouw grens
+function balk(k) {
+  if (k.ratio == null) return '';
+  const r = +k.ratio, max = +(k.grens_ratio ?? st.cfg.max_ratio), schaal = Math.max(0.8, max + 0.2);
+  const kleur = r <= max + 0.001 ? 'var(--c-profit)' : r <= max + 0.1 ? 'var(--c-cost)' : 'var(--c-neg)';
+  return `<div class="kbar" title="Alles-in kosten zijn ${Math.round(r * 100)}% van de verwachte verkoopprijs (jouw grens: ${Math.round(max * 100)}%)">
+      <i style="width:${Math.min(100, (r / schaal) * 100)}%;background:${kleur}"></i><b style="left:${(max / schaal) * 100}%"></b></div>
+    <div class="kbarl"><span>kosten ${Math.round(r * 100)}% van verkoop</span><span>jouw grens ${Math.round(max * 100)}%</span></div>`;
+}
+
+// redenen die niet al in de cijfers staan
+const extraRedenen = (k) => (k.redenen || []).filter((r) => !/^€|^kosten \d|^bied max/.test(r));
+const bodAdvies = (k) => ['twijfel', 'nee'].includes(k.oordeel) && k.max_vraagprijs > 0 && +k.prijs > +k.max_vraagprijs;
+const meta = (k) => [k.merk, k.soort, k.maat || k.maatgroep, k.kleur, k.staat && k.staat.toLowerCase()].filter(Boolean).join(' · ') || 'merk/maat onbekend';
+
+// de andere helft van een FOUR-set waar deze kans in past (uit je kansen of je voorraad)
+function setVoor(k) {
+  const s = st.sets.find((x) => x.oordeel !== 'nee' && (x.boven.id === k.id || x.onder.id === k.id));
+  if (!s) return null;
+  return { set: s, ander: s.boven.id === k.id ? s.onder : s.boven };
+}
+
+// ---------- de stapel ----------
+function stapel() {
+  return st.kansen.filter((k) => k.status === 'nieuw' && BEKIJKEN.includes(k.oordeel))
+    .sort((a, b) => (RANG[a.oordeel] ?? 9) - (RANG[b.oordeel] ?? 9) || (b.score || 0) - (a.score || 0));
+}
+
+function kaart(k) {
+  const set = k.oordeel === 'sethelft';
+  const p = setVoor(k);
+  const winst = k.winst != null ? +k.winst : null;
+  return `<article class="kkaart ${esc(k.oordeel)}" id="kKaart" data-id="${k.id}">
+    <span class="kstempel bewaar">Bewaren</span><span class="kstempel weg">Weg</span>
+    <div class="kfoto">${k.foto_url ? img(k.foto_url) : '<div class="kgeenfoto">geen foto</div>'}
+      <span class="tstatus ${esc(k.oordeel)}">${OORDEEL[k.oordeel] || esc(k.oordeel)}</span>
+      ${k.score ? `<span class="code tcode" title="Kansscore (0–100)">${k.score}</span>` : ''}
+      <div class="kfoto-onder">
+        <div class="kwinst ${winst == null ? '' : winst < 0 ? 'neg' : 'pos'}">${winst != null ? `${winst >= 0 ? '+' : ''}${eur(winst)}` : set ? 'Set-helft' : '–'}</div>
+        <div class="kwinst-l">${winst != null ? 'verwachte winst' : set && p ? `samen ${eur(+p.set.winst)} winst als set` : set ? 'interessant als helft van een set' : ''}</div>
+      </div>
+    </div>
+    <div class="kbody">
+      <div class="ktitel">${esc(k.titel)}</div>
+      <div class="tm">${esc(meta(k))}</div>
+      <div class="tnums">
+        <div><span>Vraagprijs</span><b>${eur(+k.prijs)}</b></div>
+        <div><span>${set ? 'Alles-in' : 'Verkoop ~'}</span><b>${set ? eur(+k.kosten) : eur0(+k.verwacht)}</b></div>
+        <div><span>${set ? 'Jouw max' : 'Alles-in'}</span><b>${set ? eur(+k.max_vraagprijs) : eur(+k.kosten)}</b></div>
+      </div>
+      ${balk(k)}
+      ${bodAdvies(k) ? `<div class="kbod">Bied max. ${eur(+k.max_vraagprijs)}, dan past hij binnen jouw max</div>` : ''}
+      ${p ? `<div class="kset">Past in een ${esc((KLEUR[p.set.kleur] || '').toLowerCase())} FOUR-set met ${p.ander.bron === 'voorraad' ? 'je' : 'de'} ${esc(p.ander.titel)} (${esc(p.ander.maatgroep)}): set ~${eur0(+p.set.setwaarde)}, winst ${eur(+p.set.winst)}</div>` : ''}
+      ${extraRedenen(k).length ? `<ul class="kr">${extraRedenen(k).slice(0, 3).map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+      <div class="kbron">${esc(BRON[k.bron] || k.bron)} · ${esc(geleden(k.gevonden_op) || '')}</div>
+    </div>
+  </article>`;
+}
+
+function deck(lijst) {
+  if (!lijst.length) {
+    const bewaard = st.kansen.filter((k) => k.status === 'interessant').length;
+    return `<div class="panel kleeg">
+      <div class="kleeg-i">✓</div>
+      <h3>Alles bekeken</h3>
+      <p>Nieuwe kansen verschijnen hier vanzelf: uit je zoekalerts (elke 10 minuten) en uit de extensie (elke avond om 21:00).</p>
+      ${undo.length ? '<button class="btn" id="kUndo">↶ Laatste ongedaan maken</button>' : ''}
+      ${bewaard ? `<button class="btn primary" data-filter="bewaard">Bekijk je ${bewaard} bewaarde kans${bewaard === 1 ? '' : 'en'}</button>` : ''}
+    </div>`;
+  }
+  const k = lijst[0], url = vinted(k.url);
+  return `<div class="kdeck-top"><span><b>${lijst.length}</b> te bekijken</span>${undo.length ? '<button class="linkbtn" id="kUndo">↶ Ongedaan maken</button>' : ''}</div>
+    <div class="kstapel ${lijst.length > 1 ? 'meer' : ''}">${kaart(k)}</div>
+    <div class="kacties">
+      <button class="krond weg" data-veeg="genegeerd" aria-label="Weg (pijl naar links)" title="Weg (←)">✕</button>
+      ${url ? `<a class="btn primary kvinted" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Bekijk op Vinted ↗</a>` : '<span class="kvinted muted">geen Vinted-link</span>'}
+      <button class="krond bewaar" data-veeg="interessant" aria-label="Bewaren (pijl naar rechts)" title="Bewaren (→)">★</button>
+    </div>
+    <div class="khint">Veeg naar rechts om te bewaren, naar links om weg te doen · op de computer kan het ook met ← →</div>`;
+}
+
+// bewaarde kansen naast de stapel
+function zijlijst() {
+  const bewaard = st.kansen.filter((k) => k.status === 'interessant').sort((a, b) => new Date(b.bijgewerkt_op) - new Date(a.bijgewerkt_op));
+  const sets = st.sets.filter((s) => s.oordeel !== 'nee');
+  return `<aside class="panel kzij">
+    <div class="ph"><h3>Bewaard</h3><span class="desc">${bewaard.length ? `${bewaard.length} om te kopen of te bieden` : ''}</span></div>
+    ${bewaard.length ? `<div class="klijst">${bewaard.slice(0, 12).map((k) => `<div class="krij" data-id="${k.id}">
+        ${img(k.foto_url)}
+        <div style="min-width:0"><div class="t">${esc(k.titel)}</div>
+          <div class="m">${eur(+k.prijs)}${k.winst != null ? ` · <span class="pos">+${eur(+k.winst)}</span>` : ''}${bodAdvies(k) ? ` · <span class="warn">bied ${eur(+k.max_vraagprijs)}</span>` : ''}</div></div>
+        <div class="acts">${vinted(k.url) ? `<a class="btn small" href="${esc(k.url)}" target="_blank" rel="noopener noreferrer" title="Bekijk op Vinted">↗</a>` : ''}<button class="btn small" data-st="gekocht" title="Gekocht">✓</button><button class="btn small" data-st="genegeerd" title="Toch niet">✕</button></div>
+        <div class="err" data-err></div>
+      </div>`).join('')}</div>${bewaard.length > 12 ? `<button class="linkbtn" data-filter="bewaard" style="margin-top:8px">Alle ${bewaard.length} bewaarde kansen</button>` : ''}`
+      : '<div class="empty">Veeg een kans naar rechts om hem hier te bewaren.</div>'}
+    ${leerpaneel()}
+    ${sets.length ? `<button class="kzij-sets" data-filter="sets"><b>${sets.length} FOUR-set${sets.length === 1 ? '' : 's'}</b> mogelijk: losse hoodie + broek die samen een set vormen →</button>` : ''}
+  </aside>`;
+}
+
+// wat de agent van je reacties en je verkopen heeft geleerd
+function leerpaneel() {
+  const leer = st.leer || [];
+  const soort = leer.filter((r) => r.kenmerk === 'soort');
+  const bewaard = soort.reduce((s, r) => s + r.bewaard, 0), weg = soort.reduce((s, r) => s + r.weg, 0), n = bewaard + weg;
+  const DOEL = { dames: 'Damesmodellen', kids: 'Kindermodellen', heren: 'Herenmodellen' };
+  const regel = (r) => `<li><span>${esc(r.kenmerk === 'doelgroep' ? DOEL[r.waarde] || r.waarde : r.kenmerk === 'maat' ? `Maat ${r.waarde}` : r.waarde)}</span><b class="${r.bewaard >= r.weg ? 'pos' : 'neg'}">${r.bewaard} ★ · ${r.weg} ✕</b></li>`;
+  const opvallend = leer.filter((r) => r.bewaard + r.weg >= 3).sort((a, b) => Math.abs(b.bewaard - b.weg) - Math.abs(a.bewaard - a.weg)).slice(0, 5);
+  const verkocht = (st.uitkomst || []).filter((u) => u.winst_echt != null);
+  const echt = verkocht.reduce((s, u) => s + +u.winst_echt, 0), voorspeld = verkocht.reduce((s, u) => s + (+u.winst_voorspeld || 0), 0);
+  return `<div class="kleer">
+    <div class="ph" style="margin:14px 0 8px"><h3>Wat de agent van je leert</h3><span class="desc">${n} reacties</span></div>
+    ${n < 5 ? `<div class="empty">Veeg nog ${5 - n} kans${5 - n === 1 ? '' : 'en'}, dan weegt de agent je voorkeur mee in de volgorde.</div>`
+      : !bewaard ? '<div class="empty">Je hebt alleen nog weggeveegd. Bewaar ook een paar kansen, dan ziet de agent wat je wél wilt.</div>' : ''}
+    ${opvallend.length ? `<ul class="kleer-lijst">${opvallend.map(regel).join('')}</ul>` : ''}
+    <div class="kleer-uit">${(st.uitkomst || []).length ? `Gekocht via kansen: <b>${st.uitkomst.length}</b> · verkocht: <b>${verkocht.length}</b>${verkocht.length ? ` · winst voorspeld ${eur0(voorspeld)}, echt <b class="${echt >= voorspeld ? 'pos' : 'warn'}">${eur0(echt)}</b>` : ''}` : 'Zodra je een kans koopt en verkoopt, zie je hier hoe goed de voorspelling klopte.'}</div>
+  </div>`;
+}
+
+// tegels voor de lijsten (bewaard, sets, gekocht, afgewezen)
+function tegel(k) {
+  const url = vinted(k.url);
+  const set = k.oordeel === 'sethelft';
+  return `<article class="tile kans ${esc(k.oordeel)}" data-id="${k.id}">
+    <div class="tile-img">${img(k.foto_url)}
+      <span class="tstatus ${esc(k.oordeel)}">${k.status === 'gekocht' ? 'Gekocht' : OORDEEL[k.oordeel] || k.oordeel}</span>
+      ${k.score ? `<span class="code tcode" title="Kansscore (0–100)">${k.score}</span>` : ''}
+      <span class="tsrc">${esc(geleden(k.gevonden_op) || '')}</span>
+    </div>
+    <div class="tile-body">
+      <div class="tt" title="${esc(k.titel)}">${esc(k.titel)}</div>
+      <div class="tm">${esc(meta(k))}</div>
+      <div class="tnums">
+        <div><span>Vraagprijs</span><b>${eur(+k.prijs)}</b></div>
+        <div><span>${set ? 'Alles-in' : 'Verkoop ~'}</span><b>${set ? eur(+k.kosten) : eur0(+k.verwacht)}</b></div>
+        <div><span>Winst</span><b class="${k.winst == null ? '' : +k.winst < 0 ? 'neg' : 'pos'}">${k.winst != null ? eur(+k.winst) : set ? 'als set' : '–'}</b></div>
+      </div>
+      ${balk(k)}
+      ${bodAdvies(k) ? `<div class="kbod">Bied max. ${eur(+k.max_vraagprijs)}</div>` : ''}
+      ${extraRedenen(k).length ? `<ul class="kr">${extraRedenen(k).slice(0, 3).map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+      <div class="tfoot">
+        ${url ? `<a class="btn small primary" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Bekijk ↗</a>` : '<span></span>'}
+        <span class="kacts">${k.status === 'gekocht' ? '' : `
+          ${k.status === 'interessant' ? `<button class="btn small" data-st="gekocht" title="Gekocht (gebeurt ook vanzelf als je aankoop binnenkomt)">Gekocht ✓</button>` : k.status === 'nieuw' ? `<button class="btn small" data-st="interessant" title="Bewaren">★</button>` : ''}
+          ${k.status === 'genegeerd' ? `<button class="btn small" data-st="nieuw">Terugzetten</button>` : `<button class="btn small" data-st="genegeerd" title="Weg">✕</button>`}`}
+        </span>
+      </div>
+      <div class="err" data-err></div>
+    </div>
+  </article>`;
+}
+
+function setKaart(s) {
+  const deel = (d, wat) => `${d.bron === 'voorraad' ? `${wat} uit je voorraad` : wat} · ${esc(d.maatgroep)} · ${eur(+d.kosten)}${d.bron === 'voorraad' ? ' inkoop' : ' alles-in'}`;
+  const link = (d, wat) => vinted(d.url) ? `<a class="linkbtn" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${wat} ↗</a>` : '';
+  return `<div class="setcard ${esc(s.oordeel)}">
+    <div class="setimgs">${img(s.boven.foto_url)}${img(s.onder.foto_url)}</div>
+    <div style="min-width:0">
+      <div style="font-weight:600">${esc(KLEUR[s.kleur] || '')} FOUR-set · ${esc(s.boven.maatgroep)} + ${esc(s.onder.maatgroep)}</div>
+      <div class="tm">${s.maatverschil ? 'één maat verschil' : 'zelfde maat'} · <span class="${s.oordeel === 'goed' ? 'pos' : 'warn'}">${s.oordeel === 'goed' ? 'binnen jouw max' : 'net boven je max'}</span></div>
+      <div class="tnums">
+        <div><span>Samen</span><b>${eur(+s.kosten)}</b></div>
+        <div><span>Set ~</span><b>${eur0(+s.setwaarde)}</b></div>
+        <div><span>Winst</span><b class="${+s.winst > 0 ? 'pos' : 'neg'}">${eur(+s.winst)}</b></div>
+      </div>
+      <div class="tm" title="${esc(s.boven.titel)}">${deel(s.boven, 'hoodie/sweater')}</div>
+      <div class="tm" title="${esc(s.onder.titel)}">${deel(s.onder, 'broek')}</div>
+      <div style="display:flex;gap:12px;margin-top:6px">${link(s.boven, 'Bovenstuk')}${link(s.onder, 'Broek')}</div>
+    </div>
+  </div>`;
+}
+
+// ---------- statusregel: werkt de agent? ----------
+function statusregel(open) {
+  const log = st.log;
+  const ext = log?.opmerking && (log.opmerking.match(/kansen: ([^·]+)/) || [])[1];
+  const winst = open.filter((k) => ['top', 'goed'].includes(k.oordeel)).reduce((s, k) => s + (+k.winst || 0), 0);
+  const delen = [
+    `<span><span class="kdot ${st.alert || ext ? 'aan' : ''}"></span>Agent actief</span>`,
+    `<span>Zoekalerts: ${st.alert ? esc(geleden(st.alert.ontvangen_op)) : 'nog geen'}${st.alert?.kans_resultaat?.fout ? ` <span class="warn">(${esc(st.alert.kans_resultaat.fout)})</span>` : ''}</span>`,
+    `<span>Extensie: ${log ? `${esc(geleden(log.tijd))}${ext ? ` · ${esc(ext.trim())}` : ''}` : 'nog niet gedraaid'}</span>`,
+    open.length ? `<span>Open kansen: ${open.length} · verwacht <b class="pos">${eur0(winst)}</b> winst</span>` : '',
+  ].filter(Boolean);
+  return `<div class="kstatus">${delen.join('<i>·</i>')}</div>`;
+}
+
+// zoekopdrachten die het waard zijn om in Vinted op te slaan (voor de zoekalert-mails)
+function zoekopdrachten() {
+  const max = (r) => +(r.eigen_max ?? r.max_vraagprijs);
+  const p = st.profiel.filter((r) => (r.verkocht >= 2 || r.eigen_max != null) && max(r) > 0).sort((a, b) => b.verkocht - a.verkocht);
+  const regels = p.map((r) => `<li><b>${esc(r.merk)} · ${esc(r.soort.toLowerCase())}</b>, maat XS t/m L, prijs tot <b>${eur0(Math.floor(max(r)))}</b> <span class="muted">(${r.verkocht}× verkocht, verkoop ~${eur0(+r.verwacht)}${r.eigen_max != null ? ', jouw max' : ''})</span></li>`);
+  const broekMax = st.eigen.find((e) => e.merk === 'FOUR Amsterdam' && e.soort === 'Broek');
+  if (broekMax) regels.push(`<li><b>FOUR Amsterdam · losse joggingbroek</b>, maat XS t/m M, prijs tot <b>${eur0(+broekMax.max_vraagprijs)}</b> <span class="muted">(voor sets, jouw max)</span></li>`);
+  return regels.join('');
+}
+
+// rijen van de inkooptabel: alles wat je verkocht plus soorten met alleen een eigen max (zoals de losse FOUR-broek)
+function tabelRijen() {
+  const rijen = [...st.profiel].sort((a, b) => b.verkocht - a.verkocht || b.verwacht - a.verwacht);
+  for (const e of st.eigen) {
+    if (!rijen.some((r) => r.merk === e.merk && r.soort === e.soort)) rijen.push({ merk: e.merk, soort: e.soort, eigen_max: e.max_vraagprijs });
+  }
+  return rijen;
+}
+
+function view() {
+  const { kansen } = st;
+  const c = st.cfg;
+  const lijst = stapel();
+  const open = kansen.filter((k) => ['nieuw', 'interessant'].includes(k.status) && BEKIJKEN.includes(k.oordeel));
+  const lijsten = {
+    bewaard: kansen.filter((k) => k.status === 'interessant'),
+    sets: kansen.filter((k) => ['nieuw', 'interessant'].includes(k.status) && k.oordeel === 'sethelft'),
+    gekocht: kansen.filter((k) => k.status === 'gekocht'),
+    afgewezen: kansen.filter((k) => k.status === 'genegeerd' || (k.status === 'nieuw' && ['nee', 'onbekend'].includes(k.oordeel))),
+  };
+  const goedeSets = st.sets.filter((s) => s.oordeel !== 'nee');
+  const pill = (key, label, n) => `<button data-filter="${key}" aria-pressed="${filter === key}">${label} <span class="cnt">${n}</span></button>`;
+  const leeg = !kansen.length;
+  const termen = st.termen.filter((t) => t.actief);
+
+  const opzet = `
+    <details class="panel ink-sec" ${leeg ? 'open' : ''}>
+      <summary class="ph"><h3>${leeg ? 'Zo komen er kansen binnen' : 'Waar de agent zoekt'}</h3><span class="desc">${leeg ? 'nog geen kansen gevonden' : 'zoekalerts in Vinted en de zoektermen van de extensie'}</span></summary>
+      <div class="kicker" style="margin:0 0 6px">1 · De extensie zoekt elke avond om 21:00 zelf op Vinted</div>
+      <p class="note" style="margin:0 0 8px">Samen met de update van je dashboard. Chrome moet open zijn en je moet op vinted.nl zijn ingelogd. Gemist? Dan zodra je Chrome weer opent, of klik op "Nu bijwerken" in de extensie.</p>
+      <ul class="zlist" style="margin-bottom:14px">${termen.map((t) => `<li><b>${esc(t.zoekterm)}</b> tot ${eur0(+t.max_prijs)}</li>`).join('') || '<li>Nog geen zoektermen.</li>'}</ul>
+      <div class="kicker" style="margin:0 0 6px">2 · Zoekalerts van Vinted (sneller: binnen 10 minuten)</div>
+      <ol class="zlist" style="margin-bottom:10px">
+        <li>Zoek in Vinted op een merk en soort hieronder, kies maat en <b>prijs tot</b>, sorteer op <b>nieuwste eerst</b> en tik op <b>Zoekopdracht opslaan</b>.</li>
+        <li>Ga naar Profiel → Instellingen → Meldingen en zet de <b>e-mail</b> voor opgeslagen zoekopdrachten aan.</li>
+      </ol>
+      <ul class="zlist">${zoekopdrachten() || '<li>Nog te weinig verkopen om zoekopdrachten voor te stellen.</li>'}</ul>
+    </details>`;
+
+  el().innerHTML = `
+    ${flash ? `<div class="panel" style="margin-bottom:12px;padding:12px 16px"><span class="ok">${flash}</span></div>` : ''}
+    ${fout ? `<div class="panel warnbox" style="margin-bottom:12px;padding:12px 16px"><span class="err" style="margin:0">${esc(fout)}</span></div>` : ''}
+    ${statusregel(open)}
+
+    ${leeg ? opzet : `<div class="stock-bar" style="margin-top:10px">
+      <div class="seg" id="kansFilter">${pill('swipe', 'Te bekijken', lijst.length)}${pill('bewaard', 'Bewaard', lijsten.bewaard.length)}${pill('sets', 'Sets', goedeSets.length + lijsten.sets.length)}${pill('gekocht', 'Gekocht', lijsten.gekocht.length)}${pill('afgewezen', 'Afgewezen', lijsten.afgewezen.length)}</div>
+    </div>
+    ${filter === 'swipe' ? `<div class="kdeck-wrap"><div class="kdeck">${deck(lijst)}</div>${zijlijst()}</div>` : `
+      ${filter === 'sets' && goedeSets.length ? `<div class="sets" style="margin-bottom:12px">${goedeSets.map(setKaart).join('')}</div>` : ''}
+      <div class="tiles">${[...lijsten[filter]].sort((a, b) => (RANG[a.oordeel] ?? 9) - (RANG[b.oordeel] ?? 9) || (b.score || 0) - (a.score || 0)).map(tegel).join('') || '<div class="empty" style="padding:16px;background:var(--panel)">Niets in deze lijst.</div>'}</div>`}`}
+
+    <div class="panel ink-sec">
+      <div class="ph"><h3>Check een advertentie</h3><span class="desc">zie je zelf iets op Vinted? plak titel en prijs, dan rekent de agent het voor je uit</span></div>
+      <form class="kcheck" id="kCheck">
+        <label class="field wide" style="margin:0">Titel<input name="titel" value="${esc(invoer.titel)}" placeholder="bv. Pull col camionneur Ralph Lauren bleu marine"></label>
+        <label class="field" style="margin:0">Vraagprijs<input name="prijs" value="${esc(invoer.prijs)}" placeholder="€ 0,00" inputmode="decimal"></label>
+        <label class="field" style="margin:0">Maat<input name="maat" value="${esc(invoer.maat)}" placeholder="bv. M"></label>
+        <button class="btn primary" type="submit" style="height:38px">Beoordeel</button>
+      </form>
+      <div class="err" id="kCheckErr"></div>
+      ${check ? `<div class="kres">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="tstatus ${esc(check.oordeel)}" style="position:static">${OORDEEL[check.oordeel] || esc(check.oordeel)}</span>
+          <b>${esc([check.merk, check.soort, check.maatgroep, check.kleur].filter(Boolean).join(' · '))}</b>${check.score ? `<span class="code">score ${check.score}</span>` : ''}</div>
+        ${check.verwacht != null ? `<div class="tnums"><div><span>Alles-in</span><b>${eur(+check.kosten)}</b></div><div><span>Verkoop ~</span><b>${eur0(+check.verwacht)}</b></div><div><span>Winst</span><b class="${+check.winst < 0 ? 'neg' : 'pos'}">${eur(+check.winst)}</b></div></div>${balk(check)}` : ''}
+        <ul class="kr">${(check.redenen || []).map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
+        ${BEKIJKEN.includes(check.oordeel) ? '<div><button class="btn small" id="kBewaar">★ Bewaar als kans</button></div>' : ''}
+      </div>` : ''}
+    </div>
+
+    ${leeg ? '' : opzet}
+
+    <details class="panel ink-sec" id="kTabel" ${tabelOpen ? 'open' : ''}>
+      <summary class="ph"><h3>Jouw inkooptabel</h3><span class="desc">per merk en soort: wat het oplevert en jouw max. vraagprijs · pas je max hier aan</span></summary>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Merk en soort</th><th class="num">Jouw max</th><th class="num">Winst bij jouw max</th><th class="num">Verkoop ~</th><th class="num">Verkocht</th><th class="num">Op voorraad</th><th class="num">Volgens 50%-regel</th></tr></thead>
+        <tbody>${tabelRijen().map((r) => {
+          const mijn = r.eigen_max != null ? +r.eigen_max : null;
+          const winst = mijn != null && r.verwacht != null ? +r.verwacht - (mijn * (1 + +c.pct) + +c.vast + +c.verzend) : null;
+          return `<tr>
+          <td class="title">${esc(r.merk)} · ${esc(r.soort === 'Broek' ? 'losse joggingbroek' : r.soort.toLowerCase())}</td>
+          <td class="num"><input class="inp kmax" data-merk="${esc(r.merk)}" data-soort="${esc(r.soort)}" value="${mijn != null ? String(mijn).replace('.', ',') : ''}" placeholder="–" inputmode="decimal" aria-label="Jouw max voor ${esc(r.merk)} ${esc(r.soort)}"></td>
+          <td class="num ${winst == null ? '' : winst < 0 ? 'neg' : 'pos'}">${winst != null ? eur(winst) : r.soort === 'Broek' ? 'als set' : '–'}</td>
+          <td class="num">${r.verwacht != null ? eur(+r.verwacht) : '–'}</td><td class="num">${r.verkocht ?? '–'}</td><td class="num">${r.voorraad ?? '–'}</td>
+          <td class="num">${+r.max_vraagprijs > 0 ? eur(+r.max_vraagprijs) : '–'}</td></tr>`;
+        }).join('')}</tbody>
+      </table></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px"><button class="btn primary" id="kMaxOpslaan">Opslaan en kansen opnieuw beoordelen</button><span class="err" id="kMaxErr" style="margin:0"></span></div>
+      <p class="note">Jouw max is de vraagprijs op Vinted; kopersbescherming en ${eur(+c.verzend)} verzending komen erbovenop. Binnen je max = goed, minstens 25% eronder = top, tot 15% erboven = twijfel (met bod-advies). Laat een vakje leeg om de 50%-regel te gebruiken. Verkoop ~ is je echte verkoopprijs (of vraagprijs × wat je na een bod gemiddeld krijgt).</p>
+    </details>`;
+  bind();
+}
+
+// ---------- acties ----------
+async function refresh(msg) { flash = msg || ''; fout = ''; await load(); view(); }
+
+// status direct in beeld aanpassen en daarna opslaan; mislukt het opslaan, dan terugdraaien
+async function zetStatus(id, status, ongedaanBaar, melding = '') {
+  const k = st.kansen.find((x) => String(x.id) === String(id));
+  if (!k) return;
+  const vorig = k.status;
+  k.status = status;
+  k.bijgewerkt_op = new Date().toISOString();
+  if (ongedaanBaar) undo.push({ id: k.id, status: vorig });
+  flash = melding; fout = '';
+  view();
+  const { error } = await sb().from('kansen').update({ status, bijgewerkt_op: k.bijgewerkt_op }).eq('id', k.id);
+  if (error) {
+    k.status = vorig;
+    if (ongedaanBaar) undo.pop();
+    fout = `Opslaan mislukt: ${error.message}`;
+    view();
+  }
+}
+
+// de bovenste kaart weg laten vliegen en dan de status opslaan
+function veeg(status) {
+  const kaartEl = document.getElementById('kKaart');
+  if (!kaartEl || bezig) return;
+  bezig = true;
+  kaartEl.classList.add(status === 'interessant' ? 'naar-rechts' : 'naar-links');
+  setTimeout(() => { bezig = false; zetStatus(kaartEl.dataset.id, status, true); }, 230);
+}
+
+function ongedaan() {
+  const laatste = undo.pop();
+  if (laatste) zetStatus(laatste.id, laatste.status, false);
+}
+
+// slepen met muis of vinger; verticaal scrollen blijft gewoon werken
+function maakVeegbaar(kaartEl) {
+  let x0 = null, y0 = 0, dx = 0, pid = null, sleept = false;
+  kaartEl.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || bezig) return;
+    x0 = e.clientX; y0 = e.clientY; dx = 0; pid = e.pointerId; sleept = false;
+  });
+  kaartEl.addEventListener('pointermove', (e) => {
+    if (x0 == null || e.pointerId !== pid) return;
+    dx = e.clientX - x0;
+    if (!sleept) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(e.clientY - y0)) return;
+      sleept = true;
+      kaartEl.setPointerCapture(pid);
+      kaartEl.classList.add('sleept');
+    }
+    kaartEl.style.transform = `translateX(${dx}px) rotate(${dx / 18}deg)`;
+    kaartEl.dataset.richting = dx > 0 ? 'rechts' : 'links';
+    kaartEl.style.setProperty('--sterkte', Math.min(1, Math.abs(dx) / 110).toFixed(2));
+  });
+  const los = () => {
+    if (x0 == null) return;
+    x0 = null;
+    if (!sleept) return;
+    kaartEl.classList.remove('sleept');
+    if (Math.abs(dx) > 110) { kaartEl.style.transform = ''; veeg(dx > 0 ? 'interessant' : 'genegeerd'); }
+    else { kaartEl.style.transform = ''; kaartEl.dataset.richting = ''; }
+  };
+  kaartEl.addEventListener('pointerup', los);
+  kaartEl.addEventListener('pointercancel', los);
+}
+
+// pijltjestoetsen op de computer (alleen als de Kansen-tab open staat en je niet aan het typen bent)
+document.addEventListener('keydown', (e) => {
+  if (filter !== 'swipe' || !el()?.classList.contains('on') || /^(input|textarea|select)$/i.test(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); veeg('interessant'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); veeg('genegeerd'); }
+});
+
+function bind() {
+  const root = el();
+  root.querySelectorAll('[data-filter]').forEach((b) => b.onclick = () => {
+    filter = b.dataset.filter; flash = ''; fout = ''; view();
+    // vanuit de zijlijst of het lege scherm: terug naar boven, naar de lijst
+    if (!b.closest('#kansFilter')) el().scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  const kaartEl = root.querySelector('#kKaart');
+  if (kaartEl) maakVeegbaar(kaartEl);
+  root.querySelectorAll('[data-veeg]').forEach((b) => b.onclick = () => veeg(b.dataset.veeg));
+  root.querySelectorAll('#kUndo').forEach((b) => b.onclick = ongedaan);
+  root.querySelectorAll('.tile.kans [data-st], .krij [data-st]').forEach((b) => b.onclick = () => {
+    const id = b.closest('[data-id]').dataset.id, status = b.dataset.st;
+    zetStatus(id, status, true, { gekocht: 'Gemarkeerd als gekocht.', nieuw: 'Teruggezet in de stapel.' }[status] || '');
+  });
+  root.querySelector('#kCheck').onsubmit = async (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target), err = root.querySelector('#kCheckErr');
+    invoer = { titel: (f.get('titel') || '').trim(), prijs: (f.get('prijs') || '').trim(), maat: (f.get('maat') || '').trim() };
+    const prijs = num(invoer.prijs);
+    if (!invoer.titel) { err.textContent = 'Plak de titel van de advertentie.'; return; }
+    if (prijs == null) { err.textContent = 'Vul een geldige vraagprijs in, bijvoorbeeld 12,50.'; return; }
+    err.textContent = '';
+    const { data, error } = await sb().rpc('kans_beoordeel', { p_user: st.uid, p_titel: invoer.titel, p_prijs: prijs, p_maat: invoer.maat || null });
+    if (error) { err.textContent = error.message; return; }
+    check = { ...data, prijs };
+    flash = ''; fout = '';
+    view();
+  };
+  root.querySelector('#kTabel').addEventListener('toggle', (e) => { tabelOpen = e.target.open; });
+  root.querySelector('#kMaxOpslaan').onclick = async () => {
+    const err = root.querySelector('#kMaxErr');
+    const velden = [...root.querySelectorAll('.kmax')];
+    const ongeldig = velden.find((i) => i.value.trim() && num(i.value) == null);
+    if (ongeldig) { err.textContent = `Ongeldig bedrag bij ${ongeldig.dataset.merk} ${ongeldig.dataset.soort}; gebruik bv. 18 of 17,50.`; return; }
+    err.textContent = '';
+    const bewaren = velden.filter((i) => i.value.trim()).map((i) => ({ merk: i.dataset.merk, soort: i.dataset.soort, max_vraagprijs: num(i.value), bijgewerkt_op: new Date().toISOString() }));
+    const weg = velden.filter((i) => !i.value.trim() && st.eigen.some((e) => e.merk === i.dataset.merk && e.soort === i.dataset.soort));
+    if (bewaren.length) {
+      const { error } = await sb().from('kans_maxprijs').upsert(bewaren, { onConflict: 'user_id,merk,soort' });
+      if (error) { err.textContent = error.message; return; }
+    }
+    for (const i of weg) {
+      const { error } = await sb().from('kans_maxprijs').delete().eq('merk', i.dataset.merk).eq('soort', i.dataset.soort);
+      if (error) { err.textContent = error.message; return; }
+    }
+    const { data: n, error } = await sb().rpc('kans_herbereken', { p_user: st.uid });
+    if (error) { err.textContent = error.message; return; }
+    tabelOpen = true;
+    await refresh(`Je maxima zijn opgeslagen${n ? ` en ${n} openstaande kansen zijn opnieuw beoordeeld` : ''}.`);
+  };
+  root.querySelector('#kBewaar')?.addEventListener('click', async () => {
+    const c = check;
+    const { error } = await sb().from('kansen').insert({
+      bron: 'handmatig', titel: invoer.titel, prijs: c.prijs, maat: invoer.maat || null, merk: c.merk, soort: c.soort, maatgroep: c.maatgroep,
+      kleur: c.kleur, kosten: c.kosten, verwacht: c.verwacht ?? null, winst: c.winst ?? null, ratio: c.ratio ?? null, grens_ratio: c.grens_ratio ?? null,
+      score: c.score ?? 0, oordeel: c.oordeel, zekerheid: c.zekerheid ?? null, max_vraagprijs: c.max_vraagprijs ?? null, redenen: c.redenen || [], status: 'interessant',
+    });
+    if (error) { root.querySelector('#kCheckErr').textContent = error.message; return; }
+    check = null; invoer = { titel: '', prijs: '', maat: '' }; filter = 'bewaard';
+    await refresh('Bewaard als kans.');
+  });
+}
+
+window.__renderKansen = async function renderKansen() {
+  try { if (!st || !flash) await load(); view(); flash = ''; }
+  catch (e) { el().innerHTML = `<div class="panel"><span class="err">Kon je kansen niet laden: ${esc(e.message)}</span></div>`; }
+};
+
+</script>
+<script type="module">
+// Online versie: inloggen bij Supabase, gegevens ophalen en omzetten naar het formaat van het dashboard.
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const CFG = {"url": "https://usvkmmogjfhsvbdcjouk.supabase.co", "key": "sb_publishable_CfQNcEN9iDtl_MlXqfI38w_58pLA4DF", "start": "2026-10-01", "login": "vintageton", "name": "Juup", "goal": 50000, "brands": {"Ralph Lauren": ["polo sport ralph lauren", "polo ralph lauren", "ralph lauren", "ralph", "lauren", "rl"], "FOUR Amsterdam": ["four amsterdam", "four", "fout"], "Carhartt": ["carhartt wip", "carhartt", "carhart", "carharrt"], "Stone Island": ["stone island", "stoneisland"], "Lacoste": ["lacoste"], "Daily Paper": ["daily paper", "dailypaper"], "Arte Antwerp": ["arte antwerp", "arte", "artr"], "Samsøe Samsøe": ["samsøe samsøe", "samsoe samsoe", "samsøe", "samsoe"], "ØLÅF": ["ølåf", "olaf", "ølaf", "olåf"], "Ami Paris": ["ami paris", "ami de coeur", "ami"], "Adidas": ["adidas", "samba", "gazelle", "spezial"], "Nike": ["nike", "air max", "air force", "dunk"], "Flaneur": ["flaneur", "flâneur"], "Tommy Hilfiger": ["tommy hilfiger", "hilfiger", "tommy"], "The North Face": ["the north face", "north face", "tnf"], "Stüssy": ["stüssy", "stussy"], "C.P. Company": ["c.p. company", "cp company"], "Moncler": ["moncler"], "Hugo Boss": ["hugo boss", "boss"], "Calvin Klein": ["calvin klein"], "Levi's": ["levi's", "levis", "levi’s"], "Represent": ["represent"], "Palm Angels": ["palm angels"], "Off-White": ["off-white", "off white"], "Arc'teryx": ["arc'teryx", "arcteryx"], "Patagonia": ["patagonia"], "New Balance": ["new balance"], "Zara": ["zara"], "H&M": ["h&m"]}, "categories": [["Bundel", ["^bundel"]], ["Joggingpak", ["jogging\\s*s?et", "joggingpak", "trainingspak", "tracksuit", "survêtement", "\\bpak\\b", "\\bset\\b", "ensemble"]], ["Quarter zip", ["quarter\\s*zip", "half\\s*zip", "1/4"]], ["Hoodie", ["hoodie", "hoody", "capuche", "sudadera con capucha"]], ["Sweater / trui", ["sweat", "trui", "pull", "crewneck", "knit", "jumper", "jersey", "sudadera", "maglione", "kabel"]], ["Vest", ["\\bvest\\b", "cardigan", "gilet"]], ["Jas", ["\\bjas\\b", "jacket", "jack\\b", "veste", "parka", "puffer", "bodywarmer", "windbreaker", "coat", "blouson"]], ["Polo", ["\\bpolo\\b(?!\\s*(sport|ralph))"]], ["T-shirt", ["t[\\s-]?shirt", "\\btee\\b", "camiseta", "longsleeve", "manches longues"]], ["Overhemd", ["overhemd", "\\bshirt\\b", "chemise", "button", "blouse", "oxford"]], ["Broek", ["broek", "pantalon", "trousers", "joggers?", "pants", "cargo"]], ["Jeans", ["jeans", "denim", "spijker"]], ["Short", ["short"]], ["Schoenen", ["schoen", "sneaker", "samba", "gazelle", "spezial", "air max", "air force", "dunk", "chaussure", "zapatilla", "shoes"]], ["Accessoires", ["\\bpet\\b", "\\bcap\\b", "muts", "beanie", "sjaal", "tas\\b", "bag", "riem", "belt", "sokken"]]], "manualSeed": [{"maand": "2025-12", "omzet": 1418.3, "winst": 650.0, "uitbetaald": 300.0, "items": null}, {"maand": "2026-01", "omzet": 2145.5, "winst": 1100.0, "uitbetaald": 191.29, "items": 74}, {"maand": "2026-02", "omzet": 1334.8, "winst": 646.3, "uitbetaald": 500.0, "items": 39}, {"maand": "2026-03", "omzet": 732.6, "winst": 335.0, "uitbetaald": 300.0, "items": 24}, {"maand": "2026-04", "omzet": 327.1, "winst": 145.0, "uitbetaald": 0.0, "items": 11}, {"maand": "2026-05", "omzet": 624.45, "winst": 299.5, "uitbetaald": 300.0, "items": 15}, {"maand": "2026-06", "omzet": 291.9, "winst": 128.4, "uitbetaald": 300.0, "items": 7}, {"maand": "2026-07", "omzet": 67.5, "winst": 27.25, "uitbetaald": 300.0, "items": 2}, {"maand": "2026-08", "omzet": 409.8, "winst": 175.0, "uitbetaald": 0.0, "items": 10}, {"maand": "2026-09", "omzet": 795.0, "winst": 343.0, "uitbetaald": 600.0, "items": 22}]};              // { url, key, start, login, goal, brands, categories, manualSeed }
+const sb = createClient(CFG.url, CFG.key);
+window.__sb = sb;
+window.__CFG = CFG;
+
+// ---------- merk en categorie uit de titel (zelfde regels als build.py) ----------
+const ALIASES = Object.entries(CFG.brands).flatMap(([brand, al]) => al.map((a) => [a, brand])).sort((a, b) => b[0].length - a[0].length);
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const ALIAS_RE = ALIASES.map(([a, b]) => [new RegExp(`(^|[^\\p{L}\\p{N}])${escRe(a)}(?=$|[^\\p{L}\\p{N}])`, 'u'), b]);
+function findBrand(title) {
+  const t = ' ' + (title || '').toLowerCase().replace(/[^\p{L}\p{N}&'’.-]+/gu, ' ') + ' ';
+  for (const [re, b] of ALIAS_RE) if (re.test(t)) return b;
+  return null;
+}
+const CAT_RE = CFG.categories.map(([cat, pats]) => [cat, pats.map((p) => new RegExp(p, 'i'))]);
+function findCategory(title) {
+  for (const [cat, res] of CAT_RE) if (res.some((re) => re.test(title || ''))) return cat;
+  return 'Overig';
+}
+
+window.__findBrand = findBrand;
+
+// ---------- inloggen ----------
+const $ = (id) => document.getElementById(id);
+function showLogin(msg = '') {
+  $('loginScreen').hidden = false;
+  $('loginErr').textContent = msg;
+}
+$('loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const email = $('loginEmail').value.trim(), password = $('loginPass').value;
+  if (!email || !password) { $('loginErr').textContent = 'Vul je e-mailadres en wachtwoord in.'; return; }
+  $('loginErr').textContent = '';
+  const signup = $('loginForm').dataset.mode === 'signup';
+  const { data, error } = signup ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
+  if (error) { $('loginErr').textContent = error.message === 'Invalid login credentials' ? 'E-mailadres of wachtwoord klopt niet.' : error.message; return; }
+  if (signup && !data.session) { $('loginErr').innerHTML = '<span class="ok">Account aangemaakt. Bevestig je e-mailadres via de mail van Supabase en log daarna hier in.</span>'; $('loginForm').dataset.mode = 'login'; syncMode(); return; }
+  location.reload();
+};
+function syncMode() {
+  const signup = $('loginForm').dataset.mode === 'signup';
+  $('loginTitle').textContent = signup ? 'Account aanmaken' : 'Inloggen';
+  $('loginSubmit').textContent = signup ? 'Account aanmaken' : 'Inloggen';
+  $('loginSwitch').textContent = signup ? 'Ik heb al een account' : 'Nog geen account? Maak er één aan';
+}
+$('loginSwitch').onclick = () => { $('loginForm').dataset.mode = $('loginForm').dataset.mode === 'signup' ? 'login' : 'signup'; syncMode(); };
+
+// ---------- gegevens ophalen ----------
+async function all(table, query = '*', order) {
+  const out = []; const size = 1000;
+  for (let from = 0; ; from += size) {
+    let q = sb.from(table).select(query).range(from, from + size - 1);
+    if (order) q = q.order(order);
+    const { data, error } = await q;
+    if (error) throw new Error(`${table}: ${error.message}`);
+    out.push(...data); if (data.length < size) break;
+  }
+  return out;
+}
+
+// Eerste keer inloggen: je handmatige maandcijfers (t/m september 2026) in de database zetten.
+async function seedManual(userId) {
+  const { count, error } = await sb.from('handmatig_maanden').select('maand', { count: 'exact', head: true });
+  if (error) throw new Error(error.message);
+  if (count) return;
+  const rows = CFG.manualSeed.map((m) => ({ ...m, user_id: userId }));
+  const { error: e2 } = await sb.from('handmatig_maanden').insert(rows);
+  if (e2) throw new Error(e2.message);
+}
+
+// De database geeft tijden in UTC; het dashboard rekent in maanden/dagen op Nederlandse tijd.
+const localIso = (s) => {
+  if (!s) return s;
+  const d = new Date(s), p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+
+async function loadData(user) {
+  const [manual, verkopen, vitems, adv, inkoop, log] = await Promise.all([
+    all('handmatig_maanden', '*', 'maand'), all('verkopen'), all('verkoop_items'), all('advertenties'), all('inkoop'),
+    sb.from('sync_log').select('*').order('tijd', { ascending: false }).limit(1).then((r) => r.data || []),
+  ]);
+  const inkById = new Map(inkoop.map((i) => [i.id, i]));
+  const advById = new Map(adv.map((a) => [String(a.vinted_item_id), a]));
+  const omz = manual.reduce((s, m) => s + +m.omzet, 0), wst = manual.reduce((s, m) => s + +m.winst, 0);
+  const margin = omz ? wst / omz : 0.45;   // schatting als een verkoop (nog) niet gekoppeld is
+  const itemsByTx = new Map();
+  for (const it of vitems) { const k = String(it.vinted_transaction_id); if (!itemsByTx.has(k)) itemsByTx.set(k, []); itemsByTx.get(k).push(it); }
+
+  const sales = verkopen.map((v) => {
+    const its = (itemsByTx.get(String(v.vinted_transaction_id)) || [{ vinted_item_id: null, titel: v.titel, prijs_aandeel: v.bedrag }]).map((it) => {
+      const a = it.vinted_item_id != null ? advById.get(String(it.vinted_item_id)) : null;
+      const ink = a?.inkoop_id ? inkById.get(a.inkoop_id) : null;
+      const price = +it.prijs_aandeel || 0;
+      const known = ink && ink.inkoopprijs != null;
+      const days = a?.online_sinds ? Math.floor((new Date(v.datum) - new Date(a.online_sinds)) / 864e5) : null;
+      return {
+        id: it.vinted_item_id, title: it.titel, brand: ink?.merk || findBrand(it.titel) || a?.merk || null, cat: findCategory(it.titel),
+        size: it.maat || a?.maat || null, price, days: days != null && days >= 0 ? days : null,
+        cost: known ? +ink.inkoopprijs : Math.round(price * (1 - margin) * 100) / 100, cost_src: known ? 'koppeling' : 'schatting', code: ink?.code || null,
+      };
+    });
+    const cost = its.reduce((s, i) => s + i.cost, 0);
+    return {
+      id: v.vinted_transaction_id, date: localIso(v.datum), title: v.titel, price: +v.bedrag, n: its.length, status: v.status, buyer: v.koper, country: null,
+      brand: its.length === 1 ? its[0].brand : 'Bundel', items: its, cost: v.status === 'geannuleerd' ? null : Math.round(cost * 100) / 100,
+      cost_src: its.every((i) => i.cost_src === 'koppeling') ? 'koppeling' : 'schatting', days: its.length === 1 ? its[0].days : null,
+    };
+  });
+  const buys = inkoop.filter((i) => i.bron !== 'beginvoorraad' && i.gekocht_op && localIso(i.gekocht_op) >= CFG.start && i.status !== 'retour').map((i) => ({
+    id: i.code, date: localIso(i.gekocht_op), title: `${i.code} · ${i.titel}`, paid: +(i.inkoopprijs || 0), item: i.prijs_item != null ? +i.prijs_item : null,
+    fee: +(i.servicekosten || 0), ship: +(i.verzendkosten || 0), n: 1, status: 'voltooid', brand: i.merk || findBrand(i.titel), seller: null, sold_n: i.status === 'verkocht' ? 1 : 0,
+  }));
+  const stock = adv.filter((a) => a.status === 'actief' || a.status === 'gereserveerd').map((a) => {
+    const ink = a.inkoop_id ? inkById.get(a.inkoop_id) : null;
+    return {
+      id: a.vinted_item_id, title: a.titel, brand: findBrand(a.titel) || a.merk, size: a.maat, price: a.prijs != null ? +a.prijs : null,
+      views: a.views || 0, favs: a.favorieten || 0, listed: a.online_sinds, reserved: a.status === 'gereserveerd', hidden: false, draft: false,
+      photo: a.foto_url || ink?.foto_url || null, code: ink?.code || null, cost: ink?.inkoopprijs != null ? +ink.inkoopprijs : null,
+    };
+  });
+  const open = inkoop.filter((i) => ['onderweg', 'thuis', 'online'].includes(i.status));
+  const stage = (st) => { const rs = inkoop.filter((i) => i.status === st); return { n: rs.length, inkoop: rs.reduce((t, i) => t + +(i.inkoopprijs || 0), 0) }; };
+  const voorraad = { onderweg: stage('onderweg'), thuis: stage('thuis'), online: { n: stock.length, vraag: stock.reduce((t, x) => t + (x.price || 0), 0) } };
+  const last = log[0];
+  return {
+    meta: {
+      exported_at: last?.tijd || new Date().toISOString(), login: CFG.login, goal: CFG.goal, vinted_start: CFG.start,
+      balance: last?.saldo != null ? +last.saldo : null, pending: last?.saldo_in_behandeling != null ? +last.saldo_in_behandeling : null,
+      unsold_count: open.length, unsold_cost: open.reduce((s, i) => s + +(i.inkoopprijs || 0), 0),
+      has_vinted: !!(verkopen.length || adv.length || inkoop.length), last_sync: last?.tijd || null, user_email: user.email, name: CFG.name || null,
+    },
+    manual: manual.map((m) => ({ maand: m.maand, omzet: +m.omzet, winst: +m.winst, uitbetaald: m.uitbetaald != null ? +m.uitbetaald : null, items: m.items })),
+    sales, buys, stock, voorraad,
+  };
+}
+
+// ---------- starten ----------
+async function start() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return showLogin();
+  try {
+    await seedManual(session.user.id);
+    window.__DATA = await loadData(session.user);
+  } catch (e) { return showLogin('Kon je gegevens niet laden: ' + e.message); }
+  $('loginScreen').hidden = true;
+  window.__EXTRA_TABS = { inkoop: { label: 'Voorraad', render: window.__renderInkoop }, kansen: { label: 'Kansen', render: window.__renderKansen } };
+  const s = document.createElement('script'); s.type = 'module'; s.textContent = $('appcode').textContent;
+  document.body.appendChild(s);
+  // uitlogknop + moment van de laatste synchronisatie
+  const ctl = document.querySelector('.controls');
+  const out = document.createElement('button'); out.className = 'btn small'; out.textContent = 'Uitloggen';
+  out.onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  ctl.appendChild(out);
+}
+start();
+
+</script>
+</body>
+</html>

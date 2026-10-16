@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Vintageton app-icoon · "Doelring": je weg naar €50.000 met een V in het midden.
+       Volledig vierkant zonder afronding: iOS en Android ronden de hoeken zelf af. -->
+  <defs>
+    <radialGradient id="bg" cx="0.3" cy="0.22" r="1">
+      <stop offset="0" stop-color="#22222B"/>
+      <stop offset="0.55" stop-color="#111116"/>
+      <stop offset="1" stop-color="#08080A"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0.15" y1="1" x2="0.85" y2="0">
+      <stop offset="0" stop-color="#7B8CFF"/>
+      <stop offset="0.55" stop-color="#8BB6E8"/>
+      <stop offset="1" stop-color="#3DDC97"/>
+    </linearGradient>
+    <linearGradient id="v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D6D6DE"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- spoor van de ring -->
+  <circle cx="512" cy="512" r="292" fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="66"/>
+
+  <!-- gloed + voortgangsboog (driekwart, vanaf boven met de klok mee) -->
+  <path d="M512 220 A292 292 0 1 1 220 512" fill="none" stroke="url(#ring)" stroke-width="66" stroke-linecap="round" opacity="0.55" filter="url(#glow)"/>
+  <path d="M512 220 A292 292 0 1 1 220 512" fill="none" stroke="url(#ring)" stroke-width="66" stroke-linecap="round"/>
+  <circle cx="220" cy="512" r="15" fill="#FFFFFF" opacity="0.95"/>
+
+  <!-- V -->
+  <path d="M424 446 L512 604 L600 446" fill="none" stroke="url(#v)" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
