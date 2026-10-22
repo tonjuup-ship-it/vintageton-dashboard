@@ -2093,12 +2093,23 @@ async function loadData(user) {
   };
 }
 
+// Instellingen per gebruiker (naam, doel, startdatum): elk account heeft zijn eigen dashboard.
+async function laadProfiel(user) {
+  let { data: p } = await sb.from('profiel').select('*').maybeSingle();
+  if (!p) {
+    p = { user_id: user.id, naam: (user.email || '').split('@')[0], doel: 50000, start: new Date().toISOString().slice(0, 10), handmatig: false };
+    await sb.from('profiel').insert(p);
+  }
+  Object.assign(CFG, { name: p.naam, goal: +p.doel, start: p.start, handmatig: p.handmatig });
+}
+
 // ---------- starten ----------
 async function start() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return showLogin();
   try {
-    await seedManual(session.user.id);
+    await laadProfiel(session.user);
+    if (CFG.handmatig) await seedManual(session.user.id);
     window.__DATA = await loadData(session.user);
   } catch (e) { return showLogin('Kon je gegevens niet laden: ' + e.message); }
   $('loginScreen').hidden = true;
