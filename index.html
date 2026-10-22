@@ -1295,7 +1295,9 @@ function tile(i, a) {
       </div>
       <div class="tfoot">
         <span class="${oud ? 'warn' : ''}">${d == null ? '' : i.status === 'online' ? `${d} d online` : i.status === 'onderweg' ? `${d} d geleden gekocht` : `${d} d in huis`}${a && i.status === 'online' ? ` · ${a.favorieten || 0} ♥` : ''}</span>
-        ${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : ''}
+        <span>${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : ''}
+        <button class="btn small" data-split="${i.id}" title="Meerdere items in één aankoop: los zetten">Splitsen</button>
+        <button class="btn small" data-prive="${i.id}" title="Niet zakelijk: uit je dashboard halen">Privé</button></span>
       </div>
       ${i.inkoopprijs == null ? `<div class="tprice"><input class="inp" data-price="${i.id}" placeholder="inkoop € 0,00" inputmode="decimal"><button class="btn small" data-saveprice="${i.id}">Opslaan</button></div>` : ''}
       <div class="err" data-err></div>
@@ -1429,6 +1431,37 @@ function bind() {
       if (error) { err.textContent = error.message; return; }
       try { await linkAdvert(advId, data.id); await refresh(`Nieuw item ${data.code} aangemaakt en gekoppeld.`); } catch (e) { err.textContent = e.message; }
     };
+  });
+  // één aankoop met meerdere items: los zetten, elk met een eigen code en een eerlijk deel van de prijs
+  root.querySelectorAll('[data-split]').forEach((b) => b.onclick = async () => {
+    const i = state.ink.find((x) => x.id === b.dataset.split);
+    const n = parseInt(prompt(`${i.code} · ${i.titel}\nIn hoeveel losse items splitsen?`, '2'), 10);
+    if (!(n >= 2 && n <= 10)) return;
+    const deel = (v) => { if (v == null) return Array(n).fill(null); const c = Math.round(+v * 100), b0 = Math.floor(c / n); return Array.from({ length: n }, (_, k) => (k === n - 1 ? c - b0 * (n - 1) : b0) / 100); };
+    const p = deel(i.inkoopprijs), pi = deel(i.prijs_item), vk = deel(i.verzendkosten), sk = deel(i.servicekosten);
+    const { error } = await sb().from('inkoop').update({ titel: `${i.titel} (1/${n})`, inkoopprijs: p[0], prijs_item: pi[0], verzendkosten: vk[0] ?? 0, servicekosten: sk[0] ?? 0 }).eq('id', i.id);
+    if (error) { showErr(b, error.message); return; }
+    const rest = Array.from({ length: n - 1 }, (_, k) => ({ bron: i.bron, vinted_transaction_id: i.vinted_transaction_id, titel: `${i.titel} (${k + 2}/${n})`, merk: i.merk, maat: i.maat,
+      foto_url: i.foto_url, inkoopprijs: p[k + 1], prijs_item: pi[k + 1], verzendkosten: vk[k + 1] ?? 0, servicekosten: sk[k + 1] ?? 0, gekocht_op: i.gekocht_op, status: i.status }));
+    const r2 = await sb().from('inkoop').insert(rest);
+    if (r2.error) { showErr(b, r2.error.message); return; }
+    await refresh(`${i.code} is gesplitst in ${n} losse items. Pas titel of maat aan als dat nodig is.`);
+  });
+  // privé-aankoop: weg uit voorraad en inkoop; wat je ervoor betaalde telt als uitbetaling aan jezelf in die maand
+  root.querySelectorAll('[data-prive]').forEach((b) => b.onclick = async () => {
+    const i = state.ink.find((x) => x.id === b.dataset.prive);
+    if (!confirm(`${i.code} · ${i.titel}\nPrivé maken? Hij verdwijnt uit je dashboard en ${i.inkoopprijs != null ? eur(i.inkoopprijs) : 'het bedrag'} telt als uitbetaling aan jezelf.`)) return;
+    const { error } = await sb().from('inkoop').update({ status: 'prive' }).eq('id', i.id);
+    if (error) { showErr(b, error.message); return; }
+    if (i.inkoopprijs != null) {
+      const maand = (i.gekocht_op || new Date().toISOString()).slice(0, 7);
+      const { data: m } = await sb().from('handmatig_maanden').select('uitbetaald').eq('maand', maand).maybeSingle();
+      const bedrag = Math.round(((m?.uitbetaald ? +m.uitbetaald : 0) + +i.inkoopprijs) * 100) / 100;
+      const r = m ? await sb().from('handmatig_maanden').update({ uitbetaald: bedrag }).eq('maand', maand)
+        : await sb().from('handmatig_maanden').insert({ maand, omzet: 0, winst: 0, uitbetaald: bedrag });
+      if (r.error) { showErr(b, r.error.message); return; }
+    }
+    await refresh(`${i.code} is privé en uit je dashboard gehaald.`);
   });
   root.querySelectorAll('[data-binnen]').forEach((b) => b.onclick = async () => {
     const { error } = await sb().from('inkoop').update({ status: 'thuis' }).eq('id', b.dataset.binnen);
@@ -2065,7 +2098,7 @@ async function loadData(user) {
       cost_src: its.every((i) => i.cost_src === 'koppeling') ? 'koppeling' : 'schatting', days: its.length === 1 ? its[0].days : null,
     };
   });
-  const buys = inkoop.filter((i) => i.bron !== 'beginvoorraad' && i.gekocht_op && localIso(i.gekocht_op) >= CFG.start && i.status !== 'retour').map((i) => ({
+  const buys = inkoop.filter((i) => i.bron !== 'beginvoorraad' && i.gekocht_op && localIso(i.gekocht_op) >= CFG.start && i.status !== 'retour' && i.status !== 'prive').map((i) => ({
     id: i.code, date: localIso(i.gekocht_op), title: `${i.code} · ${i.titel}`, paid: +(i.inkoopprijs || 0), item: i.prijs_item != null ? +i.prijs_item : null,
     fee: +(i.servicekosten || 0), ship: +(i.verzendkosten || 0), n: 1, status: 'voltooid', brand: i.merk || findBrand(i.titel), seller: null, sold_n: i.status === 'verkocht' ? 1 : 0,
   }));
