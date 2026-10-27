@@ -313,6 +313,30 @@ details.ink-sec > summary::-webkit-details-marker { display: none; }
 .tprice { display: flex; gap: 6px; }
 .tprice .inp { padding: 6px 9px; font-size: 12.5px; min-width: 0; }
 
+/* accountmenu */
+.acct { position: relative; }
+.acct-btn { display: flex; align-items: center; gap: 7px; font: 500 12.5px var(--font); color: var(--text); background: var(--card-2); border: 1px solid var(--line-2); padding: 3px 10px 3px 3px; border-radius: 999px; cursor: pointer; }
+.acct-btn:hover { border-color: #3a3a46; }
+.acct-av { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; color: #fff; background: linear-gradient(135deg, #FF8A3D, #F23B4E 55%, #FF4FA3); }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 250px; padding: 6px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: 0 16px 40px #000a; }
+.acct-head { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-size: 12px; color: var(--muted); }
+.acct-head b { color: var(--text); font-size: 13.5px; }
+.acct-lbl { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 8px 10px 3px; }
+.acct-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: 500 13px var(--font); color: var(--text); background: none; border: 0; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.acct-menu button span { width: 16px; text-align: center; color: var(--muted); }
+.acct-menu button:hover { background: var(--card-2); }
+.acct-sep { height: 1px; background: var(--line); margin: 6px 4px; }
+.acct-out, .acct-out span { color: var(--c-neg) !important; }
+@media (max-width: 640px) { .acct-n { display: none; } .acct-btn { padding: 3px; } }
+/* sets maken */
+.tile.kies { cursor: pointer; }
+.tile.gekozen { outline: 2px solid #F23B4E; outline-offset: -2px; }
+.tcheck { position: absolute; bottom: 10px; left: 10px; z-index: 2; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; background: #0009; border: 2px solid #fff8; }
+.tile.gekozen .tcheck { background: #F23B4E; border-color: #F23B4E; }
+.tset { font-size: 11.5px; color: #FF8A3D; margin: 2px 0; }
+.setbar { position: sticky; bottom: 12px; z-index: 20; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; margin: 12px 0; }
+.setbar .btn[disabled] { opacity: .45; cursor: default; }
+
 /* ================= online: kansen (Graphite) ================= */
 .tstatus.top::before { background: var(--c-profit); }
 .tstatus.goed::before { background: var(--c-rev); }
@@ -1246,7 +1270,7 @@ const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return i
 const norm = (s) => (s || '').toString().trim().toUpperCase();
 const STATUS = { onderweg: 'Onderweg', thuis: 'Thuis', online: 'Online' };
 
-let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false;
+let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false, setMode = false, gekozen = new Set();
 
 async function load() {
   const [ink, adv, sold] = await Promise.all([
@@ -1279,14 +1303,16 @@ function tile(i, a) {
   const winst = vraag != null && i.inkoopprijs != null ? vraag - i.inkoopprijs : null;
   const d = i.status === 'online' ? days(a?.online_sinds) : days(i.gekocht_op || i.created_at);
   const oud = i.status === 'online' && d > 60;
-  return `<article class="tile ${oud ? 'stale' : ''}" data-id="${i.id}">
-    <div class="tile-img">${img(foto)}
+  const deel = state.ink.filter((x) => x.set_id === i.id);
+  return `<article class="tile ${oud ? 'stale' : ''} ${setMode ? 'kies' : ''} ${gekozen.has(i.id) ? 'gekozen' : ''}" data-id="${i.id}">
+    <div class="tile-img">${img(foto)}${setMode ? `<span class="tcheck">${gekozen.has(i.id) ? '✓' : ''}</span>` : ''}
       <span class="tstatus ${st}">${st === 'gereserveerd' ? 'Gereserveerd' : STATUS[st]}</span>
       <span class="code tcode">${esc(i.code)}</span>
       ${foto ? `<span class="tsrc">${a?.foto_url ? 'jouw advertentie' : 'foto aankoop'}</span>` : ''}
     </div>
     <div class="tile-body">
       <div class="tt" title="${esc(i.titel)}">${esc(i.titel)}</div>
+      ${deel.length ? `<div class="tset">Set van ${deel.map((x) => esc(x.code)).join(' + ')}</div>` : ''}
       <div class="tm">${esc([i.merk || window.__findBrand(i.titel), i.maat].filter(Boolean).join(' · ') || 'merk/maat onbekend')}</div>
       <div class="tnums">
         <div><span>Inkoop</span><b>${i.inkoopprijs != null ? eur(i.inkoopprijs) : '<span class="warn">?</span>'}</b></div>
@@ -1297,6 +1323,7 @@ function tile(i, a) {
         <span class="${oud ? 'warn' : ''}">${d == null ? '' : i.status === 'online' ? `${d} d online` : i.status === 'onderweg' ? `${d} d geleden gekocht` : `${d} d in huis`}${a && i.status === 'online' ? ` · ${a.favorieten || 0} ♥` : ''}</span>
         <span>${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : ''}
         <button class="btn small" data-tekst="${i.id}" title="Titel + beschrijving kopiëren om in de Vinted-app te plakken">Tekst</button>
+        ${deel.length && !a ? `<button class="btn small" data-unset="${i.id}" title="Set weer losse items maken">Los</button>` : ''}
         <button class="btn small" data-split="${i.id}" title="Meerdere items in één aankoop: los zetten">Splitsen</button>
         <button class="btn small" data-prive="${i.id}" title="Niet zakelijk: uit je dashboard halen">Privé</button></span>
       </div>
@@ -1376,6 +1403,7 @@ function view() {
           <option value="winst" ${sort === 'winst' ? 'selected' : ''}>Hoogste verwachte winst</option>
           <option value="code" ${sort === 'code' ? 'selected' : ''}>Op code</option>
         </select>
+        <button class="btn ${setMode ? 'primary' : ''}" id="toggleSet">${setMode ? '× Stoppen' : 'Set maken'}</button>
         <button class="btn" id="toggleAdd">${showAdd ? '× Sluiten' : '+ Voorraad toevoegen'}</button>
       </div>
     </div>
@@ -1393,6 +1421,8 @@ function view() {
       <div class="err" id="addErr"></div>
     </div>` : ''}
 
+    ${setMode ? `<div class="setbar panel"><span>${gekozen.size ? `<b>${gekozen.size} gekozen</b> · samen ${eur([...gekozen].reduce((t, id) => t + +(state.ink.find((x) => x.id === id)?.inkoopprijs || 0), 0))} inkoop` : 'Tik de items aan die je als set wilt verkopen'}</span>
+      <button class="btn primary" id="maakSet" ${gekozen.size < 2 ? 'disabled' : ''}>Combineer tot set</button><span class="err" id="setErr"></span></div>` : ''}
     <div class="tiles">${shown.map((i) => tile(i, advByInk.get(i.id))).join('') || '<div class="empty">Geen items in deze selectie.</div>'}</div>
     ${zonderPrijs.length && shown.some((i) => i.inkoopprijs == null) ? `<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn primary" id="saveAllPrices">Alle ingevulde prijzen opslaan</button><span class="err" id="priceErr"></span></div>` : ''}
     <p class="note">Tip: zet bij een nieuwe advertentie <b>Ref ${stock.find((i) => i.status === 'thuis') ? esc(stock.find((i) => i.status === 'thuis').code) : 'K0001'}</b> als laatste regel in de beschrijving, dan koppelt het vanzelf bij de volgende synchronisatie.</p>`;
@@ -1412,10 +1442,42 @@ function showErr(node, msg) { const e = node.closest('.tile, .inbox-card')?.quer
 
 function bind() {
   const root = el();
+  const advByInkId = (id) => state.adv.some((a) => a.inkoop_id === id && a.status !== 'verwijderd');
   root.querySelectorAll('#stockFilter [data-filter]').forEach((b) => b.onclick = () => { filter = b.dataset.filter; flash = ''; view(); });
   const search = root.querySelector('#stockSearch');
   search.oninput = () => { query = search.value; const pos = search.selectionStart; flash = ''; view(); const s2 = el().querySelector('#stockSearch'); s2.focus(); s2.setSelectionRange(pos, pos); };
   root.querySelector('#stockSort').onchange = (e) => { sort = e.target.value; flash = ''; view(); };
+  root.querySelector('#toggleSet').onclick = () => { setMode = !setMode; gekozen = new Set(); flash = ''; view(); };
+  if (setMode) root.querySelectorAll('.tile.kies').forEach((t) => t.onclick = (e) => {
+    if (e.target.closest('button, input')) return;
+    gekozen.has(t.dataset.id) ? gekozen.delete(t.dataset.id) : gekozen.add(t.dataset.id); view();
+  });
+  // losse items samenvoegen tot één set: nieuw voorraaditem met de opgetelde inkoop; de losse items blijven bewaard (status in_set)
+  root.querySelector('#maakSet')?.addEventListener('click', async () => {
+    const its = state.ink.filter((x) => gekozen.has(x.id)), err = root.querySelector('#setErr');
+    if (its.some((x) => advByInkId(x.id))) { err.textContent = 'Een van deze items staat al online. Haal die advertentie eerst offline.'; return; }
+    const naam = prompt('Naam van de set:', 'Set: ' + its.map((x) => x.titel.replace(/\s*\(\d+\/\d+\)$/, '')).join(' + '));
+    if (!naam) return;
+    const som = (k) => its.some((x) => x[k] == null) ? null : Math.round(its.reduce((t, x) => t + +x[k], 0) * 100) / 100;
+    const merken = [...new Set(its.map((x) => x.merk || window.__findBrand(x.titel)).filter(Boolean))];
+    const { data, error } = await sb().from('inkoop').insert({ bron: 'set', titel: naam, merk: merken.length === 1 ? merken[0] : null, maat: [...new Set(its.map((x) => x.maat).filter(Boolean))].join(' / ') || null,
+      foto_url: its.find((x) => x.foto_url)?.foto_url || null, inkoopprijs: som('inkoopprijs'), prijs_item: som('prijs_item'), verzendkosten: som('verzendkosten') ?? 0, servicekosten: som('servicekosten') ?? 0,
+      gekocht_op: its.map((x) => x.gekocht_op).filter(Boolean).sort().pop() || new Date().toISOString(), status: its.some((x) => x.status === 'onderweg') ? 'onderweg' : 'thuis' }).select().single();
+    if (error) { err.textContent = error.message; return; }
+    const r = await sb().from('inkoop').update({ status: 'in_set', set_id: data.id }).in('id', its.map((x) => x.id));
+    if (r.error) { err.textContent = r.error.message; return; }
+    setMode = false; gekozen = new Set();
+    await refresh(`Set ${data.code} gemaakt (${its.map((x) => x.code).join(' + ')}). Zet "Ref ${data.code}" in je advertentie.`);
+  });
+  root.querySelectorAll('[data-unset]').forEach((b) => b.onclick = async () => {
+    const set = state.ink.find((x) => x.id === b.dataset.unset);
+    if (!confirm(`${set.code} weer losse items maken?`)) return;
+    const r = await sb().from('inkoop').update({ status: set.status === 'onderweg' ? 'onderweg' : 'thuis', set_id: null }).eq('set_id', set.id);
+    if (r.error) { showErr(b, r.error.message); return; }
+    const r2 = await sb().from('inkoop').delete().eq('id', set.id);
+    if (r2.error) { showErr(b, r2.error.message); return; }
+    await refresh(`${set.code} is weer opgesplitst in losse items.`);
+  });
   root.querySelector('#toggleAdd').onclick = () => { showAdd = !showAdd; flash = ''; view(); };
 
   root.querySelectorAll('.inbox-card').forEach((card) => {
@@ -2113,7 +2175,7 @@ async function loadData(user) {
     sales.push({ id: `kosten-${v.vinted_transaction_id}`, date: localIso(v.datum), title: `Retourkosten · ${v.titel}`, price: 0, n: 0, status: 'kosten', buyer: v.koper, country: null,
       brand: null, items: [], cost: +v.kosten, cost_src: 'koppeling', days: null });
   window.__RAW = { profiel: CFG, handmatig_maanden: manual, verkopen, verkoop_items: vitems, advertenties: adv, inkoop };
-  const buys = inkoop.filter((i) => i.bron !== 'beginvoorraad' && i.gekocht_op && localIso(i.gekocht_op) >= CFG.start && i.status !== 'retour' && i.status !== 'prive').map((i) => ({
+  const buys = inkoop.filter((i) => i.bron !== 'beginvoorraad' && i.bron !== 'set' && i.gekocht_op && localIso(i.gekocht_op) >= CFG.start && i.status !== 'retour' && i.status !== 'prive').map((i) => ({
     id: i.code, date: localIso(i.gekocht_op), title: `${i.code} · ${i.titel}`, paid: +(i.inkoopprijs || 0), item: i.prijs_item != null ? +i.prijs_item : null,
     fee: +(i.servicekosten || 0), ship: +(i.verzendkosten || 0), n: 1, status: 'voltooid', brand: i.merk || findBrand(i.titel), seller: null, sold_n: i.status === 'verkocht' ? 1 : 0,
   }));
@@ -2164,15 +2226,30 @@ async function start() {
   window.__EXTRA_TABS = { inkoop: { label: 'Voorraad', render: window.__renderInkoop }, kansen: { label: 'Kansen', render: window.__renderKansen } };
   const s = document.createElement('script'); s.type = 'module'; s.textContent = $('appcode').textContent;
   document.body.appendChild(s);
-  // uitlogknop + moment van de laatste synchronisatie
   const ctl = document.querySelector('.controls');
-  const out = document.createElement('button'); out.className = 'btn small'; out.textContent = 'Uitloggen';
-  out.onclick = async () => { await sb.auth.signOut(); location.reload(); };
-  const knop = (t, f) => { const b = document.createElement('button'); b.className = 'btn small'; b.textContent = t; b.onclick = f; ctl.appendChild(b); };
-  knop('+ Uitbetaling', uitbetaling);
-  knop('Jaaroverzicht', jaaroverzicht);
-  knop('Back-up', () => download(`vintageton-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(window.__RAW, null, 1), 'application/json'));
-  ctl.appendChild(out);
+  // accountmenu: geld, export en uitloggen netjes achter één knop
+  const naam = CFG.name || session.user.email.split('@')[0];
+  const menu = document.createElement('div'); menu.className = 'acct';
+  menu.innerHTML = `<button class="acct-btn" aria-haspopup="true" aria-expanded="false"><span class="acct-av">${naam[0].toUpperCase()}</span><span class="acct-n">${naam}</span><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    <div class="acct-menu" hidden>
+      <div class="acct-head"><b>${naam}</b><span>${session.user.email}</span><span>Laatste sync: ${window.__DATA.meta.last_sync ? new Date(window.__DATA.meta.last_sync).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'nog niet'}</span></div>
+      <div class="acct-lbl">Geld</div>
+      <button data-a="uit"><span>＋</span>Uitbetaling toevoegen</button>
+      <div class="acct-lbl">Exporteren</div>
+      <button data-a="jaar"><span>▤</span>Jaaroverzicht (Excel)</button>
+      <button data-a="backup"><span>⤓</span>Back-up downloaden</button>
+      <div class="acct-sep"></div>
+      <button data-a="out" class="acct-out"><span>⎋</span>Uitloggen</button>
+    </div>`;
+  const btn = menu.querySelector('.acct-btn'), pop = menu.querySelector('.acct-menu');
+  const zet = (open) => { pop.hidden = !open; btn.setAttribute('aria-expanded', open); };
+  btn.onclick = (e) => { e.stopPropagation(); zet(pop.hidden); };
+  document.addEventListener('click', (e) => { if (!menu.contains(e.target)) zet(false); });
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && zet(false));
+  const acties = { uit: uitbetaling, jaar: jaaroverzicht, out: async () => { await sb.auth.signOut(); location.reload(); },
+    backup: () => download(`vintageton-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(window.__RAW, null, 1), 'application/json') };
+  pop.querySelectorAll('[data-a]').forEach((b) => b.onclick = () => { zet(false); acties[b.dataset.a](); });
+  ctl.appendChild(menu);
 }
 
 // Geld dat je jezelf uitbetaalt: optellen bij "uitbetaald" van de gekozen maand.
