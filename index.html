@@ -2169,9 +2169,25 @@ async function start() {
   const out = document.createElement('button'); out.className = 'btn small'; out.textContent = 'Uitloggen';
   out.onclick = async () => { await sb.auth.signOut(); location.reload(); };
   const knop = (t, f) => { const b = document.createElement('button'); b.className = 'btn small'; b.textContent = t; b.onclick = f; ctl.appendChild(b); };
+  knop('+ Uitbetaling', uitbetaling);
   knop('Jaaroverzicht', jaaroverzicht);
   knop('Back-up', () => download(`vintageton-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(window.__RAW, null, 1), 'application/json'));
   ctl.appendChild(out);
+}
+
+// Geld dat je jezelf uitbetaalt: optellen bij "uitbetaald" van de gekozen maand.
+async function uitbetaling() {
+  const bedrag = parseFloat((prompt('Hoeveel heb je jezelf uitbetaald? (bijv. 250)') || '').replace(',', '.'));
+  if (!(bedrag > 0)) return;
+  const maand = prompt('Voor welke maand? (JJJJ-MM)', new Date().toISOString().slice(0, 7));
+  if (!/^\d{4}-\d{2}$/.test(maand || '')) return;
+  const { data: m } = await sb.from('handmatig_maanden').select('uitbetaald').eq('maand', maand).maybeSingle();
+  const nieuw = Math.round(((m?.uitbetaald ? +m.uitbetaald : 0) + bedrag) * 100) / 100;
+  const r = m ? await sb.from('handmatig_maanden').update({ uitbetaald: nieuw }).eq('maand', maand)
+    : await sb.from('handmatig_maanden').insert({ maand, omzet: 0, winst: 0, uitbetaald: nieuw });
+  if (r.error) return alert('Opslaan mislukt: ' + r.error.message);
+  alert(`Opgeslagen: uitbetaald in ${maand} is nu € ${nieuw.toFixed(2).replace('.', ',')}.`);
+  location.reload();
 }
 
 function download(naam, inhoud, type) {
