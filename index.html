@@ -1296,6 +1296,7 @@ function tile(i, a) {
       <div class="tfoot">
         <span class="${oud ? 'warn' : ''}">${d == null ? '' : i.status === 'online' ? `${d} d online` : i.status === 'onderweg' ? `${d} d geleden gekocht` : `${d} d in huis`}${a && i.status === 'online' ? ` · ${a.favorieten || 0} ♥` : ''}</span>
         <span>${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : ''}
+        <button class="btn small" data-tekst="${i.id}" title="Titel + beschrijving kopiëren om in de Vinted-app te plakken">Tekst</button>
         <button class="btn small" data-split="${i.id}" title="Meerdere items in één aankoop: los zetten">Splitsen</button>
         <button class="btn small" data-prive="${i.id}" title="Niet zakelijk: uit je dashboard halen">Privé</button></span>
       </div>
@@ -1462,6 +1463,15 @@ function bind() {
       if (r.error) { showErr(b, r.error.message); return; }
     }
     await refresh(`${i.code} is privé en uit je dashboard gehaald.`);
+  });
+  // advertentietekst voor de Vinted-app op je telefoon: kopiëren, daar plakken
+  root.querySelectorAll('[data-tekst]').forEach((b) => b.onclick = async () => {
+    const i = state.ink.find((x) => x.id === b.dataset.tekst), merk = i.merk || window.__findBrand(i.titel) || '';
+    const titel = i.titel.replace(/\s*\(\d+\/\d+\)$/, '');
+    const tekst = `${titel}${merk && !titel.toLowerCase().includes(merk.toLowerCase()) ? ' · ' + merk : ''}${i.maat ? ' · maat ' + i.maat : ''}\n\n`
+      + `${merk ? merk + ' ' : ''}${titel}${i.maat ? ', maat ' + i.maat : ''}. Goede staat, zie foto's.\nSnel verzonden, vragen? Stuur gerust een bericht.\nBundelkorting bij meerdere items.\n\nRef ${i.code}`;
+    try { await navigator.clipboard.writeText(tekst); b.textContent = 'Gekopieerd ✓'; } catch { prompt('Kopieer deze tekst:', tekst); }
+    setTimeout(() => (b.textContent = 'Tekst'), 2000);
   });
   root.querySelectorAll('[data-binnen]').forEach((b) => b.onclick = async () => {
     const { error } = await sb().from('inkoop').update({ status: 'thuis' }).eq('id', b.dataset.binnen);
@@ -2091,13 +2101,18 @@ async function loadData(user) {
         cost: known ? +ink.inkoopprijs : Math.round(price * (1 - margin) * 100) / 100, cost_src: known ? 'koppeling' : 'schatting', code: ink?.code || null,
       };
     });
-    const cost = its.reduce((s, i) => s + i.cost, 0);
+    const cost = its.reduce((s, i) => s + i.cost, 0) + +(v.kosten || 0);   // retour-/extra kosten tellen mee
     return {
       id: v.vinted_transaction_id, date: localIso(v.datum), title: v.titel, price: +v.bedrag, n: its.length, status: v.status, buyer: v.koper, country: null,
       brand: its.length === 1 ? its[0].brand : 'Bundel', items: its, cost: v.status === 'geannuleerd' ? null : Math.round(cost * 100) / 100,
       cost_src: its.every((i) => i.cost_src === 'koppeling') ? 'koppeling' : 'schatting', days: its.length === 1 ? its[0].days : null,
     };
   });
+  // retourkosten bij een geretourneerde of geannuleerde verkoop: los als kostenpost, zodat ze van je winst afgaan
+  for (const v of verkopen) if ((v.status === 'retour' || v.status === 'geannuleerd') && +v.kosten > 0)
+    sales.push({ id: `kosten-${v.vinted_transaction_id}`, date: localIso(v.datum), title: `Retourkosten · ${v.titel}`, price: 0, n: 0, status: 'kosten', buyer: v.koper, country: null,
+      brand: null, items: [], cost: +v.kosten, cost_src: 'koppeling', days: null });
+  window.__RAW = { profiel: CFG, handmatig_maanden: manual, verkopen, verkoop_items: vitems, advertenties: adv, inkoop };
   const buys = inkoop.filter((i) => i.bron !== 'beginvoorraad' && i.gekocht_op && localIso(i.gekocht_op) >= CFG.start && i.status !== 'retour' && i.status !== 'prive').map((i) => ({
     id: i.code, date: localIso(i.gekocht_op), title: `${i.code} · ${i.titel}`, paid: +(i.inkoopprijs || 0), item: i.prijs_item != null ? +i.prijs_item : null,
     fee: +(i.servicekosten || 0), ship: +(i.verzendkosten || 0), n: 1, status: 'voltooid', brand: i.merk || findBrand(i.titel), seller: null, sold_n: i.status === 'verkocht' ? 1 : 0,
@@ -2153,7 +2168,38 @@ async function start() {
   const ctl = document.querySelector('.controls');
   const out = document.createElement('button'); out.className = 'btn small'; out.textContent = 'Uitloggen';
   out.onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  const knop = (t, f) => { const b = document.createElement('button'); b.className = 'btn small'; b.textContent = t; b.onclick = f; ctl.appendChild(b); };
+  knop('Jaaroverzicht', jaaroverzicht);
+  knop('Back-up', () => download(`vintageton-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(window.__RAW, null, 1), 'application/json'));
   ctl.appendChild(out);
+}
+
+function download(naam, inhoud, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([inhoud], { type })); a.download = naam; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+// Jaaroverzicht voor de belasting: per maand omzet, inkoop, kosten, winst en uitbetaald, plus alle transacties (CSV, opent in Excel/Numbers).
+function jaaroverzicht() {
+  const D = window.__DATA, jaar = prompt('Jaaroverzicht van welk jaar?', String(new Date().getFullYear()));
+  if (!jaar) return;
+  const g = (n) => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
+  const rij = (a) => a.map((x) => `"${String(x ?? '').replace(/"/g, '""')}"`).join(';');
+  const maanden = {};
+  const m = (k) => (maanden[k] ||= { omzet: 0, inkoop: 0, kosten: 0, winst: 0, uitbetaald: 0, bron: 'Vinted' });
+  for (const x of D.manual) if (x.maand.startsWith(jaar)) Object.assign(m(x.maand), { omzet: x.omzet, winst: x.winst, uitbetaald: x.uitbetaald || 0, bron: x.maand < D.meta.vinted_start.slice(0, 7) ? 'handmatig' : 'Vinted' });
+  const tx = [];
+  for (const s of D.sales) if (s.date?.startsWith(jaar) && s.status !== 'geannuleerd' && s.status !== 'retour') {
+    const r = m(s.date.slice(0, 7)); if (r.bron !== 'Vinted') continue;
+    r.omzet += s.price; r.kosten += s.status === 'kosten' ? s.cost : 0; r.winst += s.price - (s.cost || 0);
+    tx.push([s.date.slice(0, 10), s.status === 'kosten' ? 'Kosten' : 'Verkoop', s.title, s.brand, g(s.price), g(s.cost || 0), g(s.price - (s.cost || 0))]);
+  }
+  for (const b of D.buys) if (b.date?.startsWith(jaar)) { const r = m(b.date.slice(0, 7)); if (r.bron === 'Vinted') r.inkoop += b.paid; tx.push([b.date.slice(0, 10), 'Inkoop', b.title, b.brand, '', g(b.paid), '']); }
+  const ks = Object.keys(maanden).sort(), tot = { omzet: 0, inkoop: 0, kosten: 0, winst: 0, uitbetaald: 0 };
+  const out = [`Jaaroverzicht ${jaar} · ${D.meta.name || ''}`, '', rij(['Maand', 'Omzet', 'Inkoop', 'Retourkosten', 'Winst', 'Uitbetaald', 'Bron'])];
+  for (const k of ks) { const r = maanden[k]; for (const t in tot) tot[t] += r[t]; out.push(rij([k, g(r.omzet), g(r.inkoop), g(r.kosten), g(r.winst), g(r.uitbetaald), r.bron])); }
+  out.push(rij(['Totaal', g(tot.omzet), g(tot.inkoop), g(tot.kosten), g(tot.winst), g(tot.uitbetaald), '']), '', rij(['Datum', 'Soort', 'Omschrijving', 'Merk', 'Bedrag', 'Kosten/inkoop', 'Winst']));
+  tx.sort((a, b) => a[0].localeCompare(b[0])).forEach((t) => out.push(rij(t)));
+  download(`jaaroverzicht-${jaar}.csv`, '\ufeff' + out.join('\n'), 'text/csv');
 }
 start();
 
