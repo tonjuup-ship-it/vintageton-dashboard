@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#08080A">
+<meta name="theme-color" content="#EDF0F5">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -11,230 +11,379 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vintageton">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <title>Vintageton</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ================= Graphite ================= */
+/* ================= Vintageton · Glas ================= */
 :root {
+  color-scheme: light;
+  /* Glas-tokens (zie designsysteem) */
+  --canvas: #EDF0F5;
+  --orb-cobalt: rgba(53,85,216,.34); --orb-emerald: rgba(18,163,114,.26); --orb-amber: rgba(255,138,61,.26); --orb-rose: rgba(255,79,163,.22);
+  --glass: rgba(255,255,255,.66); --glass-low: rgba(255,255,255,.52); --glass-strong: rgba(255,255,255,.92); --glass-side: rgba(255,255,255,.5);
+  --glass-edge: rgba(255,255,255,.95); --glass-edge-2: rgba(255,255,255,.3);
+  --surface: #FFFFFF; --surface-sunken: rgba(246,248,251,.72); --surface-hover: rgba(16,24,40,.04); --track: rgba(16,24,40,.07);
+  --line: rgba(16,24,40,.08); --line-strong: rgba(16,24,40,.16); --line-control: #8A94A6;
+  --ink: #0D1424; --ink-2: #434E63; --ink-3: #566173;
+  --primary: #121A2B; --primary-top: #2C3650; --on-primary: #FFFFFF;
+  --omzet-text: #2E49BF; --omzet-tint: rgba(53,85,216,.1); --omzet-line: rgba(53,85,216,.24);
+  --winst-text: #067650; --winst-tint: rgba(18,163,114,.11);
+  --inkoop-text: #94590A; --inkoop-tint: rgba(204,122,0,.12);
+  --neg-text: #B42318; --neg-tint: rgba(220,53,69,.1);
+  --rose-text: #B0306F; --rose-tint: rgba(217,70,143,.11);
+  --jewel-top: #161C34; --jewel-bottom: #080B17; --jewel-edge-a: rgba(255,138,61,.6); --jewel-edge-b: rgba(255,79,163,.5);
+  --brand-amber: #FF8A3D; --brand-ember: #F23B4E; --brand-rose: #FF4FA3; --brand-ink-a: #D92E45; --brand-ink-b: #C42A86;
+  --shadow-xs: 0 1px 2px rgba(16,24,40,.06);
+  --shadow-card: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(16,24,40,.05), 0 2px 4px rgba(16,24,40,.03), 0 14px 34px -14px rgba(28,38,84,.22);
+  --shadow-raised: 0 18px 40px -12px rgba(28,38,84,.28), 0 2px 6px rgba(16,24,40,.06);
+  --shadow-jewel: 0 30px 60px -24px rgba(8,11,23,.55), 0 12px 24px -12px rgba(242,59,78,.18);
+  /* namen die de rest van de code gebruikt (grafieken, Voorraad, Kansen) */
+  --bg: #F7F8FB; --panel: var(--glass); --card-2: var(--surface-sunken); --panel-blur: blur(24px) saturate(170%); --hover: var(--surface-hover);
+  --line-2: var(--line-strong);
+  --text: #0D1424; --text-2: #434E63; --muted: #566173;
+  --c-rev: #3555D8;      /* omzet */
+  --c-cost: #CC7A00;     /* inkoop en kosten */
+  --c-profit: #12A372;   /* winst */
+  --c-accent: #D9468F;   /* prijs en marge */
+  --c-ghost: #C3CAD6;    /* vorig jaar */
+  --c-warn: #CC7A00; --c-neg: #DC3545;
+  --th-bg: rgba(255,255,255,.92); --tip-bg: rgba(255,255,255,.94);
+  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif; --font-num: var(--font); --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --on-accent: #FFFFFF; --r: 18px;
+}
+/* Nacht: het juweel (hoofdgrafiek) en wat daarin staat */
+[data-theme="nacht"] {
   color-scheme: dark;
-  --bg: #08080A; --panel: #0F0F12; --card-2: #141418; --panel-blur: none; --hover: #16161B;
-  --line: #1E1E24; --line-2: #2A2A33;
-  --text: #EDEDF0; --text-2: #A1A1AA; --muted: #6E6E7A;
-  --c-rev: #8B9CFF;      /* omzet */
-  --c-cost: #F5A524;     /* inkoop */
-  --c-profit: #3DDC97;   /* winst */
-  --c-accent: #D4D4D8;   /* neutraal accent (items, prijzen) */
-  --c-ghost: #3A3A44;    /* vorig jaar */
-  --c-warn: #F5A524; --c-neg: #F2555A;
-  --th-bg: #0F0F12; --tip-bg: rgba(20,20,24,.97);
-  --font: "Geist", system-ui, -apple-system, sans-serif; --font-num: var(--font); --mono: "Geist Mono", ui-monospace, monospace;
-  --on-accent: #08080A; --r: 14px;
+  --orb-cobalt: rgba(91,116,240,.35); --orb-emerald: rgba(52,211,153,.22); --orb-amber: rgba(255,138,61,.22); --orb-rose: rgba(255,79,163,.22);
+  --glass: rgba(18,24,41,.62); --glass-low: rgba(14,19,34,.56); --glass-strong: rgba(20,26,46,.94); --glass-edge: rgba(255,255,255,.16); --glass-edge-2: rgba(255,255,255,.04);
+  --surface: #141A2C; --surface-sunken: rgba(255,255,255,.04); --surface-hover: rgba(255,255,255,.06); --track: rgba(255,255,255,.1);
+  --line: rgba(255,255,255,.09); --line-strong: rgba(255,255,255,.18);
+  --ink: #F4F6FB; --ink-2: #C3CAD9; --ink-3: #9AA4B9;
+  --omzet-text: #B4C1FF; --omzet-tint: rgba(143,162,255,.14); --winst-text: #6EE7B7; --winst-tint: rgba(52,211,153,.14);
+  --inkoop-text: #FFCF85; --inkoop-tint: rgba(255,181,71,.14); --neg-text: #FFA3A3; --neg-tint: rgba(255,107,107,.14);
+  --bg: #0E1322; --text: #F4F6FB; --text-2: #C3CAD9; --muted: #9AA4B9; --line-2: rgba(255,255,255,.18);
+  --c-rev: #8FA2FF; --c-cost: #FFB547; --c-profit: #34D399; --c-accent: #FF7FC0; --c-ghost: #7D88A3; --c-warn: #FFB547; --c-neg: #FF6B6B;
+  --th-bg: rgba(20,26,46,.94); --tip-bg: rgba(20,26,46,.94);
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); }
-body { margin: 0; color: var(--text); font: 13.5px/1.5 var(--font); min-height: 100vh; background: var(--bg); -webkit-font-smoothing: antialiased; }
-body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(800px 420px at 12% -8%, rgba(139,156,255,.10), transparent 70%), radial-gradient(700px 420px at 100% 0%, rgba(61,220,151,.05), transparent 70%); }
-.wrap { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 0 24px 64px; }
-@media (max-width: 700px) { .wrap { padding: 0 14px 48px; } }
+[hidden] { display: none !important; }
+html { background: var(--canvas); }
+body { margin: 0; color: var(--ink); font: 13.5px/1.5 var(--font); min-height: 100vh; background: var(--canvas); -webkit-font-smoothing: antialiased; isolation: isolate; }
+/* aurora: overlappende lichtbollen achter het glas */
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(760px 620px at 12% 2%, var(--orb-cobalt), transparent 70%), radial-gradient(620px 560px at 92% 0%, var(--orb-rose), transparent 70%),
+    radial-gradient(680px 560px at 58% 34%, var(--orb-amber), transparent 70%), radial-gradient(760px 640px at 98% 70%, var(--orb-emerald), transparent 70%),
+    radial-gradient(700px 600px at 4% 80%, var(--orb-rose), transparent 72%), radial-gradient(760px 600px at 46% 104%, var(--orb-cobalt), transparent 70%); }
 .ico { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; flex: none; }
+:focus-visible { outline: 2px solid var(--c-rev); outline-offset: 2px; }
 
-/* ---------- kop + navigatie ---------- */
-.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; min-height: 64px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
-.topbar::before { content: ""; position: absolute; inset: 0 calc(50% - 50vw); z-index: -1; background: rgba(8,8,10,.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
-.mark { width: 28px; height: 28px; display: block; flex: none; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
-.crumb { color: var(--muted); font-weight: 400; }
-.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+/* ---------- schil: zijbalk + hoofdvlak ---------- */
+.app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+.side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 18px; padding: 20px 14px 16px; z-index: 30;
+  background: var(--glass-side); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%); border-right: 1px solid var(--glass-edge-2); box-shadow: inset -1px 0 0 var(--line); }
+.brand { display: flex; align-items: center; gap: 11px; padding: 2px 8px; white-space: nowrap; }
+.mark { width: 34px; height: 34px; display: block; flex: none; border-radius: 10px; box-shadow: 0 6px 14px -4px rgba(242,59,78,.45), 0 2px 4px rgba(16,24,40,.2); }
+.brand b { display: block; font-size: 15px; line-height: 18px; font-weight: 600; letter-spacing: -.01em; }
+.brand #login { display: block; font-size: 12px; line-height: 16px; color: var(--muted); }
+.crumb { display: none; }
+.tabs { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
-.tabs button { font: 500 13.5px var(--font); color: var(--text-2); background: none; border: 0; padding: 7px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
-.tabs button:hover { background: var(--card-2); color: var(--text); }
-.tabs button[aria-selected="true"] { color: var(--text); background: var(--card-2); box-shadow: inset 0 0 0 1px var(--line-2); }
-.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 9px; padding: 2px; gap: 2px; flex-wrap: wrap; background: rgba(15,15,18,.6); }
-.seg button { background: none; border: 0; color: var(--text-2); font: 500 12.5px var(--font); padding: 5px 10px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
-.seg button:hover { color: var(--text); }
-.seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
-@media (max-width: 1060px) { .tabs { order: 3; width: 100%; margin: 0 -2px 8px; } }
+.tabs .nl { margin: 12px 0 4px; padding: 0 10px; font: 500 11px/16px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tabs .nl:first-child { margin-top: 0; }
+.tabs button { display: flex; align-items: center; gap: 10px; width: 100%; height: 36px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--text-2);
+  font: 500 13.5px var(--font); text-align: left; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s, box-shadow .15s; }
+.tabs button .ico { width: 17px; height: 17px; }
+.tabs button:hover { background: var(--hover); color: var(--text); }
+.tabs button[aria-selected="true"] { color: var(--text); background: linear-gradient(180deg, var(--glass-strong), var(--glass)); box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--glass-edge); }
+.tabs button[aria-selected="true"] .ico { color: var(--c-rev); }
+.tabs .cnt { margin-left: auto; padding: 3px 7px; border-radius: 999px; background: var(--omzet-tint); color: var(--omzet-text); font: 600 11px/1 var(--mono); }
+.side-foot { margin-top: auto; padding: 12px; border-radius: 14px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--shadow-xs); }
+.sync { color: var(--muted); font: 12px/1.4 var(--mono); display: flex; align-items: center; gap: 8px; }
+.sync i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--c-profit); box-shadow: 0 0 0 3px var(--winst-tint), 0 0 10px var(--c-profit); animation: pulse 2.2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px transparent, 0 0 14px var(--c-profit); } }
+.wrap { position: relative; min-width: 0; max-width: 1400px; width: 100%; padding: 26px 32px 64px; }
 
-.page-h { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px 16px; margin: 26px 0 18px; flex-wrap: wrap; }
-.page-h h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.025em; }
-.page-h p { margin: 4px 0 0; color: var(--text-2); max-width: 760px; }
-.sync { color: var(--muted); font: 12px var(--mono); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-.sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--c-profit); box-shadow: 0 0 0 3px rgba(61,220,151,.15); }
-@media (max-width: 700px) { .page-h { margin: 18px 0 14px; } .page-h h1 { font-size: 22px; } }
+/* ---------- paginakop ---------- */
+.page-h { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 16px; margin: 0 0 20px; flex-wrap: wrap; }
+.eyebrow { font: 500 11px/16px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.page-h h1 { margin: 0; font: 400 40px/44px var(--display); letter-spacing: -.01em; color: var(--text); }
+.page-h h1 em { font-style: italic; background: linear-gradient(100deg, var(--brand-ink-a), var(--brand-ink-b)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: 4px; }
+.page-h p { margin: 6px 0 0; color: var(--text-2); max-width: 760px; font-size: 14px; }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 12px; flex-wrap: wrap; background: var(--track); box-shadow: inset 0 1px 2px rgba(16,24,40,.06); }
+.seg button { background: none; border: 0; color: var(--text-2); font: 500 12.5px var(--font); height: 30px; padding: 0 12px; border-radius: 9px; cursor: pointer; white-space: nowrap; transition: color .15s, background .15s; }
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: linear-gradient(180deg, var(--surface), var(--glass-strong)); color: var(--text); box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line); }
 
 .view { display: none; animation: fade .3s ease; }
 .view.on { display: block; }
 @keyframes fade { from { opacity: 0; transform: translateY(4px); } }
 
-/* ---------- raster + kaarten ---------- */
-.g12 { display: grid; gap: 12px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+/* ---------- raster + glaskaarten ---------- */
+.g12 { display: grid; gap: 16px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .s3 { grid-column: span 3; } .s4 { grid-column: span 4; } .s5 { grid-column: span 5; } .s6 { grid-column: span 6; } .s7 { grid-column: span 7; } .s8 { grid-column: span 8; } .s12 { grid-column: span 12; }
-@media (max-width: 1100px) { .s3 { grid-column: span 6; } .s4, .s5, .s7, .s8 { grid-column: span 12; } }
-@media (max-width: 760px) { .s6 { grid-column: span 12; } }
-.card, .panel { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
+.card, .panel { position: relative; min-width: 0; padding: 18px 20px; border: 1px solid transparent; border-radius: var(--r);
+  background: linear-gradient(180deg, var(--glass) 0%, var(--glass-low) 100%) padding-box, linear-gradient(155deg, var(--glass-edge) 0%, var(--glass-edge-2) 38%, var(--glass-edge-2) 62%, var(--glass-edge) 100%) border-box;
+  -webkit-backdrop-filter: var(--panel-blur); backdrop-filter: var(--panel-blur); box-shadow: var(--shadow-card); }
 .card.pad0 { padding: 0; overflow: hidden; }
-.ct, .ph { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.ct h3, .ph h3 { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-2); display: flex; align-items: center; gap: 2px; letter-spacing: 0; text-transform: none; }
+.orb { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; z-index: 0; }
+.orb i { position: absolute; width: 240px; height: 240px; right: -90px; top: -120px; border-radius: 50%; }
+.orb i + i { width: 220px; height: 220px; right: auto; top: auto; left: -90px; bottom: -130px; }
+.card > :not(.orb):not(.tip):not(.spark) { position: relative; z-index: 1; }
+.jewel { padding: 22px 24px; border-radius: 24px; color: var(--text);
+  background: radial-gradient(70% 90% at 102% -8%, var(--orb-rose), transparent 62%) padding-box, radial-gradient(60% 80% at 70% -20%, var(--orb-amber), transparent 60%) padding-box,
+    radial-gradient(70% 90% at -6% 110%, var(--orb-cobalt), transparent 62%) padding-box, radial-gradient(50% 60% at 50% 120%, var(--orb-emerald), transparent 62%) padding-box,
+    linear-gradient(165deg, var(--jewel-top), var(--jewel-bottom)) padding-box,
+    linear-gradient(140deg, var(--jewel-edge-a), var(--glass-edge-2) 34%, var(--glass-edge-2) 66%, var(--jewel-edge-b)) border-box;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), var(--shadow-jewel); }
+.jewel .ct h3 { font: 400 26px/30px var(--display); color: var(--text); letter-spacing: 0; }
+.jewel { display: flex; flex-direction: column; }
+.jewel .mchart { flex: 1; min-height: 320px; }
+.ct, .ph { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.ct h3, .ph h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 2px; letter-spacing: -.005em; text-transform: none; }
 .ct .r, .ph .desc { color: var(--muted); font-size: 12px; }
-.kicker { font-size: 12px; font-weight: 500; color: var(--text-2); }
-.row { margin-top: 12px; }
-.grid { display: grid; gap: 12px; }
+.kicker { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+.row { margin-top: 16px; }
+.grid { display: grid; gap: 16px; }
 .g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
 .g3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
-.dotc { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; flex: none; }
-.dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
-.chip, .delta { display: inline-flex; align-items: center; gap: 4px; font: 500 11.5px var(--mono); padding: 1px 7px; border-radius: 5px; color: var(--text-2); background: var(--card-2); white-space: nowrap; }
-.chip.up, .delta.up { color: var(--c-profit); background: rgba(61,220,151,.1); }
-.chip.dn, .delta.down { color: var(--c-neg); background: rgba(242,85,90,.1); }
-.pos { color: var(--c-profit); } .neg { color: var(--c-neg); } .warn { color: var(--c-warn); }
-.btn { font: 500 12.5px var(--font); color: var(--text); background: var(--card-2); border: 1px solid var(--line-2); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
-.btn:hover { border-color: #3a3a46; }
-.btn.small { padding: 5px 10px; }
-.linkbtn { background: none; border: 0; color: var(--c-rev); cursor: pointer; font: 500 12px var(--font); padding: 0; display: inline-flex; align-items: center; gap: 4px; }
-.linkbtn:hover { text-decoration: underline; }
+.dotc { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex: none; box-shadow: 0 0 8px currentColor; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.chip, .delta { display: inline-flex; align-items: center; gap: 4px; font: 600 11.5px var(--mono); height: 20px; padding: 0 7px; border-radius: 6px; color: var(--text-2); background: var(--card-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip.up, .delta.up { color: var(--winst-text); background: var(--winst-tint); }
+.chip.dn, .delta.down { color: var(--neg-text); background: var(--neg-tint); }
+.pos { color: var(--winst-text); } .neg { color: var(--neg-text); } .warn { color: var(--inkoop-text); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: 500 12.5px var(--font); color: var(--text); padding: 8px 13px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line-2); background: linear-gradient(180deg, var(--glass-strong), var(--glass)); box-shadow: var(--shadow-xs); transition: border-color .15s, transform .15s; }
+.btn:hover { border-color: var(--line-control); }
+.btn.small { padding: 5px 10px; border-radius: 8px; }
+.btn.primary { color: var(--on-primary); border-color: var(--primary); background: linear-gradient(180deg, var(--primary-top), var(--primary)); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 16px -6px rgba(18,26,43,.5); font-weight: 600; }
+.btn.primary:hover { transform: translateY(-1px); border-color: var(--primary); }
+.linkbtn { background: none; border: 0; color: var(--omzet-text); cursor: pointer; font: 500 12.5px var(--font); padding: 0; display: inline-flex; align-items: center; gap: 4px; }
+.linkbtn:hover { text-decoration: underline; text-underline-offset: 3px; }
 .lg { display: flex; gap: 14px; color: var(--text-2); font-size: 12px; flex-wrap: wrap; }
 .lg span { display: inline-flex; align-items: center; gap: 6px; }
-.lg i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.lg i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .lg i.ln { height: 2px; width: 14px; border-radius: 2px; }
+.lg i.dash { height: 0; width: 14px; border-top: 2px dashed var(--c-ghost); border-radius: 0; }
 .note { color: var(--muted); font-size: 12px; margin-top: 10px; }
 
 /* ---------- KPI ---------- */
-.kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
-.kpi .v { font-size: 30px; font-weight: 600; letter-spacing: -.03em; margin-top: 2px; font-variant-numeric: tabular-nums; line-height: 1.15; }
-.kpi .row { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.kpis { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .kpi .ct { margin-bottom: 4px; }
-.kpi > svg.spark { position: absolute; right: 16px; top: 16px; width: 96px; height: 34px; }
-@media (max-width: 640px) { .kpi .v { font-size: 23px; } .kpi > svg.spark { position: static; display: block; width: 100%; height: 26px; margin-top: 8px; } .card { padding: 14px; }
-  .crumb { display: none; } .topbar { gap: 8px 10px; min-height: 56px; padding-top: 8px; } .seg button { padding: 5px 8px; } .controls .btn { padding: 5px 9px; } }
+.kpi .ct h3 { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+.kpi .v { font-size: 30px; font-weight: 600; letter-spacing: -.035em; margin-top: 2px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi .row { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.kpi > svg.spark { position: absolute; right: 18px; top: 40px; width: 104px; height: 38px; z-index: 1; }
 
-/* ---------- hoofdgrafiek ---------- */
-.mchart { position: relative; height: 330px; }
-@media (max-width: 640px) { .mchart { height: 260px; } }
+/* ---------- hoofdgrafiek (in het juweel) ---------- */
+.mchart { position: relative; height: 340px; }
 .mchart svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .mchart .hit { cursor: pointer; }
-.tip { position: absolute; pointer-events: none; z-index: 5; background: var(--tip-bg); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; min-width: 176px; box-shadow: 0 12px 30px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; font-size: 12.5px; }
+.mchart text { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+.mchart text.m { font-family: var(--font); font-size: 11.5px; }
+.mchart text.m.on { fill: var(--text); font-weight: 600; }
+.tip { position: absolute; pointer-events: none; z-index: 5; background: var(--tip-bg); -webkit-backdrop-filter: blur(16px) saturate(170%); backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; min-width: 186px; box-shadow: var(--shadow-raised); opacity: 0; transition: opacity .12s; font-size: 12.5px; color: var(--text); }
 .tip.on { opacity: 1; }
 .tip b { display: block; margin-bottom: 6px; text-transform: capitalize; }
 .tip .r { display: flex; justify-content: space-between; gap: 16px; color: var(--text-2); }
 .tip .r span:last-child { color: var(--text); font-family: var(--mono); }
 
 /* ---------- maandkaart ---------- */
-.live { font: 500 11px var(--mono); color: var(--c-profit); display: inline-flex; align-items: center; gap: 6px; }
-.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-profit); animation: p 1.6s infinite; }
-@keyframes p { 50% { opacity: .25; } }
-.mcard .v { font-size: 40px; font-weight: 600; letter-spacing: -.035em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.live { font: 500 11.5px var(--mono); color: var(--winst-text); display: inline-flex; align-items: center; gap: 7px; }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c-profit); box-shadow: 0 0 8px var(--c-profit); animation: p 1.6s infinite; }
+@keyframes p { 50% { opacity: .3; } }
+.mcard .v { font-size: 38px; font-weight: 600; letter-spacing: -.04em; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .mcard .sub { color: var(--text-2); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .mcard .sub b { color: var(--text); font-weight: 600; }
-.meter { position: relative; height: 8px; border-radius: 99px; background: var(--card-2); margin: 16px 0 8px; }
-.meter i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: linear-gradient(90deg, #5b6cf0, var(--c-rev)); }
-.meter u { position: absolute; top: 0; bottom: 0; border-radius: 0 99px 99px 0; background: repeating-linear-gradient(45deg, rgba(139,156,255,.45) 0 3px, transparent 3px 7px); }
-.meter b { position: absolute; top: -5px; width: 2px; height: 18px; background: var(--text); border-radius: 2px; transform: translateX(-1px); }
+.meter { position: relative; height: 10px; border-radius: 99px; background: var(--track); margin: 16px 0 8px; }
+.meter i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: linear-gradient(90deg, #2340B8, var(--c-rev)); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+.meter u { position: absolute; top: 0; bottom: 0; border-radius: 0 99px 99px 0; background: repeating-linear-gradient(45deg, var(--omzet-line) 0 3px, transparent 3px 7px); }
+.meter b { position: absolute; top: -4px; width: 2px; height: 18px; background: var(--text); border-radius: 2px; transform: translateX(-1px); }
 .ml { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
-.list { margin-top: 14px; border-top: 1px solid var(--line); }
-.list div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--text-2); }
-.list span:last-child { color: var(--text); font-family: var(--mono); text-align: right; }
-.src { margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+.split { margin-top: 16px; }
+.split .cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+.split .bar { display: flex; gap: 3px; height: 12px; }
+.split .bar i { min-width: 4px; border-radius: 99px; box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -2px 4px rgba(0,0,0,.08); }
+.split .leg { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 8px; margin-top: 9px; }
+.split .leg div { font-size: 12px; line-height: 16px; color: var(--muted); min-width: 0; }
+.split .leg span { display: flex; align-items: center; gap: 6px; }
+.split .leg span i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.split .leg b { display: block; margin-top: 2px; font: 600 14px/20px var(--mono); color: var(--text); white-space: nowrap; }
+.split .leg small { font: 500 11.5px var(--mono); color: var(--muted); margin-left: 4px; }
+.list { margin-top: 14px; }
+.list div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); color: var(--text-2); }
+.list span:last-child { color: var(--text); font-family: var(--mono); font-size: 12.5px; text-align: right; }
+.src { margin-top: 10px; font-size: 12px; color: var(--muted); }
 
-/* ---------- doel ---------- */
+/* ---------- doelring ---------- */
 .gauge { display: grid; place-items: center; position: relative; }
-.gauge svg { width: 100%; max-width: 300px; }
-.gauge .c { position: absolute; top: 44%; text-align: center; }
-.gauge .c .v { font-size: 28px; font-weight: 600; letter-spacing: -.03em; }
+.gauge svg { width: 100%; max-width: 236px; overflow: visible; }
+.gauge .c { position: absolute; top: 58%; left: 0; right: 0; transform: translateY(-50%); text-align: center; }
+.gauge .c .v { font-size: 28px; font-weight: 600; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
 .gauge .c .n { color: var(--muted); font-size: 12px; }
-.gstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
-.gstats div { background: var(--card-2); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
-.gstats span { display: block; font-size: 11px; color: var(--muted); }
-.gstats b { font: 500 13px var(--mono); }
+.gstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.gstats div { background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; padding: 9px 10px; min-width: 0; }
+.gstats span { display: block; font-size: 11.5px; color: var(--muted); }
+.gstats b { font: 600 13px var(--mono); white-space: nowrap; }
 
 /* ---------- pijplijn + merken ---------- */
 .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: stretch; }
-.stage { background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
-.stage .l { color: var(--text-2); display: flex; align-items: center; }
-.stage .v { font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
-.stage .n { color: var(--muted); font-size: 11.5px; }
+.stage { position: relative; overflow: hidden; background: var(--card-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.stage::after { content: ""; position: absolute; width: 130px; height: 130px; right: -55px; top: -65px; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, var(--so, transparent), transparent); }
+.stage .l { position: relative; color: var(--text-2); display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 12.5px; }
+.stage .l .si { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+.stage .v { position: relative; font-size: 28px; font-weight: 600; letter-spacing: -.035em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.stage .n { position: relative; color: var(--muted); font-size: 12px; }
 .arrow { display: grid; place-items: center; color: var(--muted); }
-@media (max-width: 640px) { .flow { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); height: 14px; } }
-.brand-row { display: grid; grid-template-columns: 120px 1fr 74px; align-items: center; gap: 10px; padding: 6px 0; }
-.brand-row .bar { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
-.brand-row .bar i { display: block; height: 100%; border-radius: 4px; background: var(--c-rev); }
-.brand-row .val { text-align: right; font: 12.5px var(--mono); }
-.brand-row .nm { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.brand-row .nm small { color: var(--muted); margin-left: 4px; }
+.brand-row { display: grid; grid-template-columns: 130px 1fr 74px; align-items: center; gap: 12px; padding: 6px 0; }
+.brand-row .bar { height: 8px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.brand-row .bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2340B8, var(--c-rev)); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+.brand-row .val { text-align: right; font: 500 12.5px var(--mono); }
+.brand-row .nm { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-row .nm small { color: var(--muted); margin-left: 5px; font-family: var(--mono); }
 
 /* ---------- etalage ---------- */
-.gal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); }
-@media (max-width: 760px) { .gal { grid-template-columns: repeat(2, 1fr); } }
-.g { position: relative; aspect-ratio: 3/4; background: var(--card-2); overflow: hidden; }
+.gal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 18px 18px; }
+.g { position: relative; aspect-ratio: 3/4; border-radius: 14px; background: var(--card-2); overflow: hidden; box-shadow: var(--shadow-xs); transition: transform .25s, box-shadow .25s; }
+.g:hover { transform: translateY(-3px); box-shadow: var(--shadow-raised); }
 .g img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
 .g:hover img { transform: scale(1.05); }
-.g .ov { position: absolute; inset: auto 0 0 0; padding: 34px 12px 10px; background: linear-gradient(transparent, rgba(8,8,10,.93)); }
+.g .ov { position: absolute; inset: auto 0 0 0; padding: 34px 12px 10px; background: linear-gradient(transparent, rgba(8,11,23,.82)); color: #fff; }
 .g .t { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.g .m { display: flex; justify-content: space-between; gap: 6px; font: 12px var(--mono); color: var(--text-2); margin-top: 2px; }
-.g .m span { white-space: nowrap; }
-@media (max-width: 760px) { .g .m { flex-wrap: wrap; font-size: 11px; gap: 0 6px; } }
-.g .code { position: absolute; top: 10px; left: 10px; font: 500 11px var(--mono); background: rgba(8,8,10,.75); border: 1px solid var(--line-2); padding: 2px 6px; border-radius: 6px; }
-.g .age { position: absolute; top: 10px; right: 10px; font: 500 11px var(--mono); color: #1a1100; background: var(--c-warn); padding: 2px 6px; border-radius: 6px; }
+.g .m { display: flex; justify-content: space-between; gap: 6px; font: 12px var(--mono); color: rgba(255,255,255,.82); margin-top: 2px; }
+.g .m span { white-space: nowrap; } .g .m .pos { color: #6EE7B7; } .g .m .neg { color: #FFA3A3; }
+.g .code { position: absolute; top: 9px; left: 9px; font: 500 11px var(--mono); color: var(--text); background: var(--glass-strong); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
+.g .age { position: absolute; top: 9px; right: 9px; font: 600 11px var(--mono); color: var(--inkoop-text); background: var(--glass-strong); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; }
 
 /* ---------- actie nodig ---------- */
-.feed { display: grid; gap: 10px; }
-.f { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
-.f .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
+.feed { display: flex; flex-direction: column; }
+.f { display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.f:first-child { border-top: 0; padding-top: 0; }
+.f .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
 .f b { font-weight: 600; }
-.f p { margin: 2px 0 0; color: var(--text-2); }
-.ic.good { background: rgba(61,220,151,.12); color: var(--c-profit); }
-.ic.info { background: rgba(139,156,255,.12); color: var(--c-rev); }
-.ic.warn { background: rgba(245,165,36,.12); color: var(--c-warn); }
-.ic.bad { background: rgba(242,85,90,.12); color: var(--c-neg); }
+.f p { margin: 2px 0 0; color: var(--text-2); font-size: 12.5px; line-height: 18px; }
+.ic.good { background: var(--winst-tint); color: var(--winst-text); }
+.ic.info { background: var(--omzet-tint); color: var(--omzet-text); }
+.ic.warn { background: var(--inkoop-tint); color: var(--inkoop-text); }
+.ic.bad { background: var(--neg-tint); color: var(--neg-text); }
+
+/* ---------- verkoopritme ---------- */
+.heat { display: grid; grid-template-columns: 24px 1fr 52px; gap: 5px 10px; align-items: center; }
+.heat .d { font: 500 11.5px var(--font); color: var(--muted); }
+.heat .r { display: grid; gap: 4px; }
+.heat .c { position: relative; aspect-ratio: 1; border-radius: 6px; background: var(--track); transition: transform .15s; }
+.heat .c:hover { transform: scale(1.18); z-index: 2; }
+.heat .c.on { background: var(--c-profit); }
+.heat .c.on::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--glass-strong); opacity: var(--veil, 0); }
+.heat .s { display: flex; align-items: center; gap: 6px; font: 500 11.5px var(--mono); color: var(--text-2); }
+.heat .s i { height: 6px; border-radius: 99px; background: var(--c-profit); }
+.heat .w { display: grid; gap: 4px; font: 500 10.5px var(--mono); color: var(--muted); }
+.heat .w span { text-align: center; white-space: nowrap; }
+.hscale { display: flex; justify-content: space-between; align-items: center; gap: 6px 12px; flex-wrap: wrap; margin-top: 12px; font-size: 11.5px; color: var(--muted); }
+.hscale > span:last-child { display: inline-flex; align-items: center; gap: 4px; }
+.hscale i { position: relative; width: 12px; height: 12px; border-radius: 3px; overflow: hidden; }
+
+/* ---------- waterval ---------- */
+.wf { position: relative; height: 290px; }
+.wf svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.wf text { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+.wf text.v { font-size: 11.5px; font-weight: 600; fill: var(--text); }
+.wf text.l { font-family: var(--font); font-size: 11.5px; }
 
 /* ---------- grafieken & tabellen ---------- */
 .chart { position: relative; height: 260px; }
-.tablewrap { overflow: auto; max-height: 520px; border-radius: 10px; border: 1px solid var(--line); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-th { position: sticky; top: 0; z-index: 1; background: var(--th-bg); color: var(--muted); font-weight: 500; font-size: 11.5px; cursor: pointer; user-select: none; }
+.tablewrap { overflow: auto; max-height: 520px; border-radius: 12px; border: 1px solid var(--line); background: var(--glass-low); }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { position: sticky; top: 0; z-index: 1; background: var(--th-bg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--muted); font-weight: 500; font-size: 11.5px; letter-spacing: .02em; cursor: pointer; user-select: none; }
 th:hover { color: var(--text); }
-tbody tr:hover { background: var(--hover); }
+tbody tr:hover td { background: var(--hover); }
 tbody tr:last-child td { border-bottom: 0; }
-td.num, th.num { text-align: right; font-family: var(--mono); font-size: 12.5px; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 td.title { white-space: normal; min-width: 220px; color: var(--text); }
-.badge { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px; border-radius: 5px; font-size: 11.5px; background: var(--card-2); color: var(--text-2); }
-.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
-.badge.voltooid::before { background: var(--c-profit); }
-.badge.onderweg::before { background: var(--c-rev); }
-.badge.geannuleerd::before { background: var(--c-neg); }
-.badge.retour::before { background: var(--c-cost); }
-.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-input[type=search] { font: 13px var(--font); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); color: var(--text); min-width: min(100%, 300px); outline: none; }
-input[type=search]:focus { border-color: var(--c-rev); box-shadow: 0 0 0 3px rgba(139,156,255,.15); }
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--card-2); color: var(--text-2); border: 1px solid var(--line); }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge.voltooid { color: var(--winst-text); background: var(--winst-tint); }
+.badge.onderweg { color: var(--omzet-text); background: var(--omzet-tint); }
+.badge.geannuleerd { color: var(--neg-text); background: var(--neg-tint); }
+.badge.retour, .badge.kosten { color: var(--inkoop-text); background: var(--inkoop-tint); }
+.mbar { display: inline-flex; align-items: center; gap: 8px; min-width: 130px; width: 100%; }
+.mbar u { flex: 1; height: 6px; border-radius: 99px; background: var(--track); overflow: hidden; text-decoration: none; }
+.mbar u i { display: block; height: 100%; border-radius: 99px; background: var(--c-profit); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+.mbar b { font: 500 12.5px var(--mono); min-width: 54px; text-align: right; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+input[type=search] { font: 13px var(--font); height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--glass-strong); color: var(--text); min-width: min(100%, 300px); outline: none; box-shadow: var(--shadow-xs); }
+input[type=search]:focus { border-color: var(--c-rev); box-shadow: 0 0 0 3px var(--omzet-tint); }
 
 /* ---------- merken ---------- */
 .matrix { position: relative; height: 440px; }
-@media (max-width: 640px) { .matrix { height: 340px; } }
-.quad-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin-top: 12px; }
-.quad-legend > div { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--text-2); padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.matrix svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.matrix text { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+.matrix text.q { font: 600 11.5px var(--font); }
+.matrix text.lb { font: 500 12px var(--font); fill: var(--text); paint-order: stroke; stroke: var(--glass-strong); stroke-width: 3px; stroke-linejoin: round; }
+.matrix text.ax { font-family: var(--font); font-size: 11.5px; }
+.matrix .bub { cursor: pointer; transition: opacity .2s; }
+.matrix .bub.dim { opacity: .25; }
+.quad-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 14px; }
+.quad-legend > div { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; color: var(--text-2); padding: 12px; border-radius: 14px; background: var(--card-2); border: 1px solid var(--line); }
+.quad-legend .dot { margin-top: 5px; box-shadow: 0 0 8px currentColor; }
 .quad-legend b { color: var(--text); display: block; font-weight: 600; }
-.cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.bcard { transition: transform .25s, box-shadow .25s; }
+.bcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-raised); }
 .bcard .hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.bcard .nm { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bcard .big { font-size: 24px; font-weight: 600; letter-spacing: -.02em; margin: 8px 0 0; }
-.bcard .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-.bcard .stats div { font-size: 11px; color: var(--muted); }
-.bcard .stats b { display: block; font: 500 12.5px var(--mono); color: var(--text); margin-top: 1px; }
-.bcard svg.spark { width: 100%; height: 30px; display: block; margin-top: 12px; }
-.qbadge { font: 500 11px var(--font); padding: 2px 8px; border-radius: 5px; white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; }
+.bcard .nm { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bcard .big { font-size: 26px; font-weight: 600; letter-spacing: -.035em; margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+.bcard .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.bcard .stats div { font-size: 11.5px; color: var(--muted); }
+.bcard .stats b { display: block; font: 600 12.5px var(--mono); color: var(--text); margin-top: 1px; }
+.bcard .stats b.neg { color: var(--neg-text); }
+.bcard svg.spark { width: 100%; height: 34px; display: block; margin-top: 12px; }
+.qbadge { font: 600 11px var(--font); padding: 3px 9px; border-radius: 999px; white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; }
+.sect { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 26px 2px 14px; }
+.sect h2 { margin: 0; font: 400 26px/30px var(--display); color: var(--text); }
+.sect span { font-size: 12.5px; color: var(--muted); }
 
 .empty-state { max-width: 560px; margin: 48px auto; text-align: center; padding: 34px 28px; }
 .empty-state .ic { margin: 0 auto 14px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; }
-.empty-state h2 { margin: 0 0 8px; font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+.empty-state h2 { margin: 0 0 8px; font: 400 26px/30px var(--display); }
 .empty-state p { color: var(--text-2); margin: 0; }
-.demo { position: fixed; bottom: 14px; right: 14px; z-index: 50; padding: 5px 10px; border-radius: 6px; font: 500 11px var(--mono); color: #1a1100; background: var(--c-warn); }
-/* ================= online: inloggen + voorraad (Graphite) ================= */
+.demo { position: fixed; bottom: 14px; right: 14px; z-index: 50; padding: 5px 10px; border-radius: 6px; font: 500 11px var(--mono); color: #1a1100; background: #FFB547; }
+
+/* ---------- smaller ---------- */
+@media (max-width: 1100px) { .s3 { grid-column: span 6; } .s4, .s5, .s7, .s8 { grid-column: span 12; } }
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { position: sticky; top: 0; height: auto; flex-direction: row; align-items: center; gap: 10px; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--glass-edge-2); box-shadow: 0 1px 0 var(--line); }
+  .brand { padding: 0; } .brand > div { display: none; }
+  .tabs { flex-direction: row; overflow-x: auto; overflow-y: hidden; flex: 1; }
+  .tabs .nl { display: none; }
+  .tabs button { width: auto; height: 34px; padding: 0 11px; }
+  .tabs button .ico { display: none; }
+  .side-foot { display: none; }
+  .wrap { padding: 18px 16px 48px; }
+}
+@media (max-width: 760px) { .s6 { grid-column: span 12; } }
+@media (max-width: 640px) {
+  .page-h h1 { font-size: 32px; line-height: 36px; }
+  .kpi .v { font-size: 24px; } .kpi > svg.spark { position: static; display: block; width: 100%; height: 30px; margin-top: 8px; }
+  .card, .panel { padding: 15px; } .jewel { padding: 16px; }
+  .mchart { height: 270px; }
+  .flow { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); height: 14px; }
+  .gal { grid-template-columns: repeat(2, 1fr); padding: 0 14px 14px; }
+  .g .m { flex-wrap: wrap; font-size: 11px; gap: 0 6px; }
+  .matrix { height: 360px; }
+  .split .leg b { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+/* ================= online: inloggen + voorraad (Glas) ================= */
 #loginScreen { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(8,8,10,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 #loginScreen[hidden] { display: none; }
 #loginScreen .panel { width: min(100%, 380px); padding: 28px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
@@ -347,7 +496,47 @@ details.ink-sec > summary::-webkit-details-marker { display: none; }
 .ed-act .danger { margin-left: auto; color: var(--c-neg); border-color: #F2555A55; }
 @media (max-width: 520px) { .ed-grid { grid-template-columns: 1fr; } .ed-act .danger { margin-left: 0; } }
 
-/* ================= online: kansen (Graphite) ================= */
+/* ================= Glas: lichte, glazen versie van de onderdelen hierboven ================= */
+#loginScreen { background: rgba(237,240,245,.5); -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%); }
+#loginScreen .panel { background: var(--glass-strong); box-shadow: var(--shadow-raised); }
+#loginScreen h2 { font: 400 32px/36px var(--display); letter-spacing: 0; }
+.field input, .field select, .inp { background: var(--glass-strong); border-color: var(--line-2); border-radius: 10px; }
+.field input:focus, .inp:focus { border-color: var(--c-rev); box-shadow: 0 0 0 3px var(--omzet-tint); }
+.btn.primary { color: var(--on-primary); background: linear-gradient(180deg, var(--primary-top), var(--primary)); border-color: var(--primary); }
+.btn.primary:hover { background: linear-gradient(180deg, var(--primary-top), var(--primary)); }
+.warnbox { border-color: var(--inkoop-line, rgba(204,122,0,.3)) !important; background: linear-gradient(180deg, var(--inkoop-tint), transparent 60%), var(--glass) !important; }
+.ink-kpis { gap: 16px; }
+.ink-kpis .panel { padding: 16px 18px; }
+.ink-kpis .v { font-size: 30px; letter-spacing: -.035em; }
+.ink-sec h3 { color: var(--text); }
+.ink-row, .inbox-card, .cand { border-radius: 12px; }
+.code { background: var(--glass-strong); }
+/* voorraadtegels: losse glazen kaarten */
+.tiles { gap: 16px; background: none; border: 0; border-radius: 0; overflow: visible; }
+.tile { border-radius: var(--r); overflow: hidden; border: 1px solid transparent; background: linear-gradient(180deg, var(--glass), var(--glass-low)) padding-box, linear-gradient(155deg, var(--glass-edge), var(--glass-edge-2) 45%, var(--glass-edge)) border-box;
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); box-shadow: var(--shadow-card); transition: transform .25s, box-shadow .25s; }
+.tile:hover { background: linear-gradient(180deg, var(--glass), var(--glass-low)) padding-box, linear-gradient(155deg, var(--glass-edge), var(--glass-edge-2) 45%, var(--glass-edge)) border-box; transform: translateY(-3px); box-shadow: var(--shadow-raised); }
+.tile.stale .tile-img { box-shadow: inset 0 0 0 2px rgba(204,122,0,.55); }
+.tile-img::after { height: 30%; background: linear-gradient(transparent, rgba(8,11,23,.18)); }
+.tile-img .noimg, .ink-row .noimg, .inbox-card .noimg, .cand .noimg { background: radial-gradient(75% 60% at 28% 22%, var(--orb-cobalt), transparent 72%), radial-gradient(70% 60% at 86% 92%, var(--orb-rose), transparent 72%), var(--card-2); }
+.tstatus, .tcode { color: var(--text); background: var(--glass-strong); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 999px; }
+.tcode { border-radius: 6px; }
+.tstatus::before { box-shadow: 0 0 6px currentColor; }
+.tstatus.thuis::before { background: var(--c-cost); }
+.tstatus.onderweg::before { background: var(--c-rev); }
+.tsrc { padding: 1px 7px; border-radius: 6px; color: var(--text-2); background: var(--glass-strong); border: 1px solid var(--line); }
+.tnums { border-color: var(--line); }
+/* accountmenu */
+.acct-btn { background: linear-gradient(180deg, var(--glass-strong), var(--glass)); box-shadow: var(--shadow-xs); }
+.acct-btn:hover { border-color: var(--line-control); }
+.acct-menu { background: var(--glass-strong); -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%); border-color: var(--line); border-radius: 14px; box-shadow: var(--shadow-raised); }
+.acct-menu button:hover { background: var(--hover); }
+/* sets + wijzig-venster */
+.setbar { background: var(--glass-strong); }
+.ed-bg { background: rgba(13,20,36,.38); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.ed { background: var(--glass-strong) !important; border-radius: var(--r); box-shadow: var(--shadow-raised); }
+
+/* ================= online: kansen (Glas) ================= */
 .tstatus.top::before { background: var(--c-profit); }
 .tstatus.goed::before { background: var(--c-rev); }
 .tstatus.twijfel::before, .tstatus.sethelft::before { background: var(--c-cost); }
@@ -485,6 +674,26 @@ details.ink-sec > summary.ph { margin-bottom: 0; }
 .kleer-uit { margin-top: 8px; font-size: 12px; color: var(--muted); }
 .kleer-uit b { color: var(--text); }
 
+/* ================= Glas: kansen ================= */
+.tile.kans.top .tile-img { box-shadow: inset 0 0 0 2px rgba(18,163,114,.5); }
+.setcard, .kstatus { background: linear-gradient(180deg, var(--glass), var(--glass-low)); -webkit-backdrop-filter: var(--panel-blur); backdrop-filter: var(--panel-blur); border-color: var(--line); box-shadow: var(--shadow-card); border-radius: 14px; }
+.setcard.goed { border-color: rgba(18,163,114,.35); }
+.kdot.aan { box-shadow: 0 0 0 3px var(--winst-tint), 0 0 8px var(--c-profit); }
+/* swipe-kaart: glas, met witte tekst op de foto */
+.kkaart { background: linear-gradient(180deg, var(--glass-strong), var(--glass)); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%); border-color: var(--glass-edge); box-shadow: var(--shadow-raised); border-radius: 20px; }
+.kkaart.top { border-color: rgba(18,163,114,.5); }
+.kstapel.meer::before { background: var(--glass); border-color: var(--line); }
+.kfoto-onder, .kfoto-onder .kwinst, .kwinst { color: #fff; }
+.kfoto-onder .kwinst.pos { color: #6EE7B7; }
+.kfoto-onder .kwinst-l { color: rgba(255,255,255,.82); }
+.kset { background: var(--winst-tint); border-color: rgba(18,163,114,.28); }
+.krond { background: linear-gradient(180deg, var(--glass-strong), var(--glass)); box-shadow: var(--shadow-xs); }
+.krij { border-radius: 12px; }
+.kzij-sets { background: var(--winst-tint); border-color: rgba(18,163,114,.3); }
+.kleeg-i { background: var(--winst-tint); }
+.kleer-lijst li { border: 1px solid var(--line); }
+.kfoto-onder .kwinst.neg { color: #FFA3A3; }
+
 </style>
 </head>
 <body>
@@ -502,17 +711,20 @@ details.ink-sec > summary.ph { margin-bottom: 0; }
   </form>
 </div>
 
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand"><svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="mkR" x1="0.1" y1="0.1" x2="0.9" y2="0.9"><stop offset="0" stop-color="#FF8A3D"/><stop offset=".55" stop-color="#F23B4E"/><stop offset="1" stop-color="#FF4FA3"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="#16161B"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="8"/><path d="M50 20 A30 30 0 1 1 20 50" fill="none" stroke="url(#mkR)" stroke-width="8" stroke-linecap="round"/><path d="M45.5 36 a4.5 4.5 0 1 1 4.5 4.5 V44.5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M50 44.5 L33.5 57.5 Q31.5 59.5 34.5 59.5 H65.5 Q68.5 59.5 66.5 57.5 Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/></svg><span id="login">vintageton</span> <span class="crumb" id="crumb"></span></div>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="mkR" x1="0.1" y1="0.1" x2="0.9" y2="0.9"><stop offset="0" stop-color="#FF8A3D"/><stop offset=".55" stop-color="#F23B4E"/><stop offset="1" stop-color="#FF4FA3"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="#16161B"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="8"/><path d="M50 20 A30 30 0 1 1 20 50" fill="none" stroke="url(#mkR)" stroke-width="8" stroke-linecap="round"/><path d="M45.5 36 a4.5 4.5 0 1 1 4.5 4.5 V44.5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M50 44.5 L33.5 57.5 Q31.5 59.5 34.5 59.5 H65.5 Q68.5 59.5 66.5 57.5 Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/></svg>
+      <div><b>Vintageton</b><span id="login">vintageton</span></div><span class="crumb" id="crumb"></span></div>
     <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div class="side-foot"><div class="sync"><i></i><span id="updated"></span></div></div>
+  </aside>
+<div class="wrap">
+  <div class="page-h"><div><div class="eyebrow" id="eyebrow"></div><h1 id="pageTitle"></h1><p id="pageSub"></p></div>
     <div class="controls">
       <div class="seg" id="years" role="group" aria-label="Jaar"></div>
       <div class="seg" id="periods" role="group" aria-label="Periode"></div>
     </div>
   </div>
-
-  <div class="page-h"><div><h1 id="pageTitle"></h1><p id="pageSub"></p></div><div class="sync"><i></i><span id="updated"></span></div></div>
 
   <!-- ============ OVERZICHT ============ -->
   <section class="view" id="v-overzicht">
@@ -522,25 +734,31 @@ details.ink-sec > summary.ph { margin-bottom: 0; }
       <div class="card kpi s3" id="k3"></div>
       <div class="card kpi s3" id="k4"></div>
 
-      <div class="card s8">
-        <div class="ct"><h3 id="mainTitle">Omzet en winst per maand</h3><div class="lg" id="mainLegend"></div></div>
+      <div class="card jewel s8" data-theme="nacht">
+        <div class="ct"><div><h3 id="mainTitle">Omzet en winst</h3><div class="r" id="mainSub" style="margin-top:3px"></div></div><div class="lg" id="mainLegend"></div></div>
         <div class="mchart" id="mainChart"></div>
-        <div class="note" style="margin-top:6px" id="mainHint">Klik op een maand voor de details rechts.</div>
+        <div class="note" style="margin-top:8px" id="mainHint">Klik op een maand voor de details rechts.</div>
       </div>
       <div class="card s4 mcard" id="monthCard"></div>
 
-      <div class="card s4"><div class="ct"><h3>Road to <span id="goalLabel"></span></h3><span class="r" id="goalPace"></span></div><div class="gauge" id="gauge"></div><div class="gstats" id="gstats"></div></div>
-      <div class="card s8"><div class="ct"><h3>Voorraad-pijplijn</h3><span class="r">van aankoop tot verkoop</span></div><div class="flow" id="flow"></div>
-        <div class="ct" style="margin:18px 0 6px"><h3>Online · vraagwaarde per merk</h3><span class="r" id="brandTotal"></span></div><div id="stockBrands"></div></div>
+      <div class="card s8" id="pipeCard"><div class="ct"><h3>Voorraad-pijplijn</h3><span class="r">van aankoop tot verkoop</span></div><div class="flow" id="flow"></div>
+        <div class="ct" style="margin:20px 0 6px"><h3>Online · vraagwaarde per merk</h3><span class="r" id="brandTotal"></span></div><div id="stockBrands"></div></div>
+      <div class="card s4" id="goalCard"><div class="orb"><i style="background:radial-gradient(closest-side,var(--orb-rose),transparent)"></i></div><div class="ct"><h3>Road to <span id="goalLabel"></span></h3><span class="r" id="goalPace"></span></div><div class="gauge" id="gauge"></div><div class="gstats" id="gstats"></div></div>
 
-      <div class="card s8 pad0" id="galCard"><div class="ct" style="padding:16px 18px 0"><h3>Etalage · meeste favorieten</h3><span class="r" id="galInfo"></span></div><div class="gal" id="gal" style="margin-top:12px"></div></div>
-      <div class="card s4" id="feedCard"><div class="ct"><h3>Actie nodig</h3><span class="r" id="feedCount"></span></div><div class="feed" id="feed"></div></div>
+      <div class="card s8 pad0" id="mixCard"><div class="ct" style="padding:18px 20px 0"><div><h3>Beste producten</h3><div class="r" id="mixSub" style="margin-top:3px"></div></div><span class="r" id="mixNote"></span></div><div id="mix" style="margin-top:12px"></div></div>
+      <div class="card s4" id="rhythmCard"><div class="orb"><i style="background:radial-gradient(closest-side,var(--orb-emerald),transparent)"></i></div><div class="ct"><div><h3>Verkoopritme</h3><div class="r" id="rhythmSub" style="margin-top:3px"></div></div></div><div id="rhythm"></div></div>
+
+      <div class="card s8 pad0" id="galCard"><div class="ct" style="padding:18px 20px 0"><h3>Etalage · meeste favorieten</h3><span class="r" id="galInfo"></span></div><div class="gal" id="gal" style="margin-top:12px"></div></div>
+      <div class="card s4" id="feedCard"><div class="orb"><i style="background:radial-gradient(closest-side,var(--orb-amber),transparent)"></i></div><div class="ct"><h3>Actie nodig</h3><span class="r" id="feedCount"></span></div><div class="feed" id="feed"></div></div>
     </div>
   </section>
 
   <!-- ============ FINANCIËN ============ -->
   <section class="view" id="v-financien">
     <div class="kpis" id="finKpis"></div>
+    <div class="card row" id="wfCard"><div class="orb"><i style="background:radial-gradient(closest-side,var(--orb-cobalt),transparent)"></i><i style="background:radial-gradient(closest-side,var(--orb-emerald),transparent)"></i></div>
+      <div class="ct"><div><h3>Van omzet naar winst</h3><div class="r" id="wfSub" style="margin-top:3px"></div></div><div class="lg"><span><i style="background:var(--c-rev)"></i>Omzet</span><span><i style="background:var(--c-cost)"></i>Inkoop</span><span><i style="background:var(--c-neg)"></i>Kosten</span><span><i style="background:var(--c-profit)"></i>Winst</span></div></div>
+      <div class="wf" id="wf"></div></div>
     <div class="grid g2 row">
       <div class="card">
         <div class="ct"><h3>Omzet per maand</h3><div class="lg"><span><i style="background:var(--c-rev)"></i><span class="yCur"></span></span><span><i style="background:var(--c-ghost)"></i><span class="yPrev"></span></span></div></div>
@@ -570,14 +788,14 @@ details.ink-sec > summary.ph { margin-bottom: 0; }
 
   <!-- ============ MERKEN ============ -->
   <section class="view" id="v-merken">
-    <div class="card">
+    <div class="card"><div class="orb"><i style="background:radial-gradient(closest-side,var(--orb-emerald),transparent)"></i><i style="background:radial-gradient(closest-side,var(--orb-cobalt),transparent)"></i></div>
       <div class="ct"><h3>Merkenmatrix</h3><span class="r">rechts = verkoopt sneller · hoger = meer winst per stuk · grootte = omzet</span></div>
-      <div class="matrix"><canvas id="cMatrix"></canvas></div>
+      <div class="matrix" id="matrix"></div>
       <div class="quad-legend" id="quadLegend"></div>
     </div>
-    <div class="ct" style="margin:24px 0 12px"><h3>Merkkaarten</h3><span class="r" id="cardsDesc"></span></div>
+    <div class="sect"><h2>Merkkaarten</h2><span id="cardsDesc"></span></div>
     <div class="cards" id="brandCards"></div>
-    <div style="text-align:center;margin-top:12px"><button class="btn" id="moreCards" hidden>Toon alle merken</button></div>
+    <div style="text-align:center;margin-top:14px"><button class="btn" id="moreCards" hidden>Toon alle merken</button></div>
     <div class="grid g3" style="margin-top:24px">
       <div class="card"><div class="ct"><h3>Categorieën</h3><span class="r">verkochte items</span></div><div class="chart"><canvas id="cCats"></canvas></div></div>
       <div class="card"><div class="ct"><h3>Maten</h3><span class="r">verkochte items</span></div><div class="chart"><canvas id="cSizes"></canvas></div></div>
@@ -619,6 +837,7 @@ details.ink-sec > summary.ph { margin-bottom: 0; }
     </div>
   </section>
 </div>
+</div>
 
 <script type="text/plain" id="appcode">
 const DATA = window.__DATA || null;
@@ -646,6 +865,15 @@ const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) 
 
 // iconen (lijnstijl, 24×24)
 const ICONS = {
+  grid: '<rect x="3.5" y="3.5" width="7" height="8" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.6"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.6"/><rect x="3.5" y="14.5" width="7" height="6" rx="1.6"/>',
+  chart: '<path d="M4 20h16"/><path d="M5 15.5l4.5-5 3.5 3 6-7"/><path d="M15 6.5h4v4"/>',
+  tag: '<path d="M3.5 12V4.8c0-.7.6-1.3 1.3-1.3H12c.3 0 .7.1.9.4l7.4 7.4c.5.5.5 1.3 0 1.8l-7.2 7.2c-.5.5-1.3.5-1.8 0l-7.4-7.4c-.3-.2-.4-.6-.4-.9z"/><circle cx="8.2" cy="8.2" r="1.5"/>',
+  list: '<path d="M9 6.5h11"/><path d="M9 12h11"/><path d="M9 17.5h11"/><circle cx="4.8" cy="6.5" r=".9" fill="currentColor"/><circle cx="4.8" cy="12" r=".9" fill="currentColor"/><circle cx="4.8" cy="17.5" r=".9" fill="currentColor"/>',
+  swap: '<path d="M7.5 3.5 4 7l3.5 3.5"/><path d="M4 7h14"/><path d="M16.5 13.5 20 17l-3.5 3.5"/><path d="M20 17H6"/>',
+  spark: '<path d="M11 3.5c.6 4.4 2.3 6.1 6.7 6.7-4.4.6-6.1 2.3-6.7 6.7-.6-4.4-2.3-6.1-6.7-6.7 4.4-.6 6.1-2.3 6.7-6.7z"/><path d="M18.5 15c.3 1.9.9 2.5 2.8 2.8-1.9.3-2.5.9-2.8 2.8-.3-1.9-.9-2.5-2.8-2.8 1.9-.3 2.5-.9 2.8-2.8z"/>',
+  truck: '<path d="M3 6.5h10.5v9.5H3z"/><path d="M13.5 10h3.8l3.2 3.4V16h-7"/><circle cx="7" cy="17.8" r="1.8"/><circle cx="17" cy="17.8" r="1.8"/>',
+  home: '<path d="M4 10.4 12 4l8 6.4V20H4z"/><path d="M9.8 20v-5.2h4.4V20"/>',
+  store: '<path d="M4 9.5h16"/><path d="M5 9.5V20h14V9.5"/><path d="M4 9.5 6 4h12l2 5.5"/><path d="M10 20v-5h4v5"/>',
   box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   up: '<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',
@@ -663,11 +891,11 @@ function sparkSvg(values, color, stretch = false) {
   const v = values.map((x) => x ?? 0); if (v.length < 2) return '';
   const w = 96, h = 34, max = Math.max(...v), min = Math.min(0, ...v), r = max - min || 1;
   const pts = v.map((x, i) => [i / (v.length - 1) * (w - 4) + 2, h - 3 - (x - min) / r * (h - 6)]);
-  const line = pts.map((p) => p.join(',')).join(' ');
+  const line = smoothPath(pts);
   const id = 'sg' + Math.random().toString(36).slice(2, 8);
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" ${stretch ? 'preserveAspectRatio="none"' : ''}><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
-    <polygon points="${pts[0][0]},${h} ${line} ${pts.at(-1)[0]},${h}" fill="url(#${id})"/><polyline points="${line}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" ${stretch ? 'vector-effect="non-scaling-stroke"' : ''}/>
-    ${stretch ? '' : `<circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="2.5" fill="${color}"/>`}</svg>`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" ${stretch ? 'preserveAspectRatio="none"' : ''}><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".3"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${line} L${pts.at(-1)[0]},${h} L${pts[0][0]},${h} Z" fill="url(#${id})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    ${stretch ? '' : `<circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="2.8" fill="#fff" stroke="${color}" stroke-width="1.8"/>`}</svg>`;
 }
 
 const NOW = new Date(DATA.meta.exported_at);
@@ -736,10 +964,16 @@ function bar(id, labels, datasets, { fmt = num, horizontal = false, stacked = fa
   charts[id]?.destroy();
   const vAxis = { beginAtZero: true, stacked, grid: { color: C.line }, border: { display: false }, ticks: { callback: (v) => fmt(v), maxTicksLimit: 5, font: monoTicks() } };
   const cAxis = { stacked, grid: { display: false }, border: { color: C.line2 }, ticks: { autoSkip: true, maxRotation: 0 } };
+  // verloop van half naar vol, in de richting van de staaf
+  const fill = (color) => (ctx) => {
+    const a = ctx.chart.chartArea; if (!a || !/^#[0-9a-f]{6}$/i.test(color)) return color;
+    const g = horizontal ? ctx.chart.ctx.createLinearGradient(a.left, 0, a.right, 0) : ctx.chart.ctx.createLinearGradient(0, a.bottom, 0, a.top);
+    g.addColorStop(0, alpha(color, .5)); g.addColorStop(1, color); return g;
+  };
   charts[id] = new Chart(document.getElementById(id), {
     type: 'bar',
-    data: { labels, datasets: datasets.map((d) => ({ borderRadius: stacked ? 2 : 4, borderSkipped: 'start', maxBarThickness: horizontal ? 16 : 20, categoryPercentage: 0.72, barPercentage: 0.86, borderWidth: 0,
-      backgroundColor: d.color, hoverBackgroundColor: d.color, ...d })) },
+    data: { labels, datasets: datasets.map((d) => ({ borderRadius: stacked ? 3 : 7, borderSkipped: 'start', maxBarThickness: horizontal ? 16 : 22, categoryPercentage: 0.72, barPercentage: 0.86, borderWidth: 0,
+      backgroundColor: fill(d.color), hoverBackgroundColor: d.color, ...d })) },
     options: {
       indexAxis: horizontal ? 'y' : 'x', maintainAspectRatio: false, animation: { duration: 500, easing: 'easeOutQuart' },
       interaction: { mode: 'index', intersect: false },
@@ -771,10 +1005,11 @@ function brandStats(SI) {
   });
 }
 // KPI-kaart: label, waarde, chip/regel, kleur, optionele trendlijn
+const orbFor = (color) => `<div class="orb"><i style="background:radial-gradient(closest-side,${alpha(color, .3)},transparent)"></i></div>`;
 const kpi = (label, value, sub, color, chip = '', spark = null) =>
-  `<div class="card kpi"><div class="ct"><h3><span class="dotc" style="background:${color}"></span>${label}</h3></div><div class="v">${value}</div><div class="row">${chip}<span>${sub}</span></div>${spark ? sparkSvg(spark, color) : ''}</div>`;
+  `<div class="card kpi">${kpiInner(label, value, sub, color, chip, spark)}</div>`;
 const kpiInner = (label, value, sub, color, chip = '', spark = null) =>
-  `<div class="ct"><h3><span class="dotc" style="background:${color}"></span>${label}</h3></div><div class="v">${value}</div><div class="row">${chip}<span>${sub}</span></div>${spark ? sparkSvg(spark, color) : ''}`;
+  `${orbFor(color)}<div class="ct"><h3><span class="dotc" style="background:${color};color:${color}"></span>${label}</h3></div><div class="v">${value}</div><div class="row">${chip}<span>${sub}</span></div>${spark ? sparkSvg(spark, color) : ''}`;
 
 // ================= maanddata: Vinted waar beschikbaar, anders handmatige invoer =================
 const tipRow = (k, v) => `<div class="r"><span>${k}</span><span>${v}</span></div>`;
@@ -837,6 +1072,8 @@ function renderOverview() {
   if (selMonth) renderMonthCard(selMonth); else document.getElementById('monthCard').innerHTML = '<div class="ct"><h3>Geen gegevens</h3></div><p style="color:var(--text-2)">Er zijn nog geen maanden met omzet in dit jaar.</p>';
   renderGauge();
   renderPipeline();
+  renderMix();
+  renderRhythm();
   renderGallery();
   renderFeed();
 }
@@ -865,32 +1102,42 @@ function drawMainChart() {
   const ghostPts = prevY.filter((v) => v != null).length >= 2, costPts = cost.filter((v) => v != null).length;
   const max = Math.max(1, ...[...rev, ...(ghostPts ? prevY : []), ...proj, ...cost].map((v) => v || 0));
   const step = niceStep(max / 4), top = Math.ceil(max * 1.06 / step) * step;
-  const W = el.clientWidth, H = el.clientHeight, L = 44, R = 8, T = 12, B = 26, sw = (W - L - R) / 12;
+  const W = el.clientWidth, H = el.clientHeight, L = 46, R = 8, T = 14, B = 28, sw = (W - L - R) / 12;
   const x = (i) => L + (i + .5) * sw, y = (v) => H - B - Math.max(0, v) / top * (H - B - T);
-  document.getElementById('mainTitle').textContent = `Omzet en winst per maand · ${yy}`;
-  document.getElementById('mainLegend').innerHTML = `<span><i style="background:var(--c-rev)"></i>Omzet</span><span><i style="background:var(--c-profit)"></i>Winst</span>${costPts ? '<span><i class="ln" style="background:var(--c-cost)"></i>Inkoop</span>' : ''}${ghostPts ? `<span><i class="ln" style="background:#5a5a66"></i>${yy - 1}</span>` : ''}${proj.some((v) => v) ? '<span><i style="background:repeating-linear-gradient(45deg,var(--c-rev) 0 2px,transparent 2px 4px)"></i>Prognose</span>' : ''}`;
-  let s = `<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${C.rev}" stop-opacity=".32"/><stop offset="1" stop-color="${C.rev}" stop-opacity="0"/></linearGradient>
-    <pattern id="hp" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="${C.rev}" stroke-width="1.2" opacity=".75"/></pattern></defs>`;
-  for (let v = 0; v <= top + 1e-9; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${C.line}"/><text x="${L - 8}" y="${y(v) + 3.5}" text-anchor="end" font-family="Geist Mono" font-size="10.5" fill="${C.muted}">${v ? kfmt(v) : '0'}</text>`;
+  const tot = sumMonths(keys.filter(has));
+  document.getElementById('mainTitle').textContent = `Omzet en winst · ${yy}`;
+  document.getElementById('mainSub').textContent = tot.revenue ? `${yy === Y ? 'Tot nu' : 'Heel ' + yy}: ${eur(tot.revenue)} omzet · ${eur(tot.profit)} winst · ${pct(tot.profit / tot.revenue)} marge` : '';
+  document.getElementById('mainLegend').innerHTML = `<span><i style="background:var(--c-rev);box-shadow:0 0 8px var(--c-rev)"></i>Omzet</span><span><i style="background:var(--c-profit);box-shadow:0 0 8px var(--c-profit)"></i>Winst</span>${costPts ? '<span><i class="ln" style="background:var(--c-cost)"></i>Inkoop</span>' : ''}${ghostPts ? `<span><i class="dash"></i>${yy - 1}</span>` : ''}${proj.some((v) => v) ? '<span><i style="background:repeating-linear-gradient(45deg,var(--c-rev) 0 2px,transparent 2px 4px)"></i>Prognose</span>' : ''}`;
+  let s = `<svg viewBox="0 0 ${W} ${H}"><defs>
+    <linearGradient id="mcA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--c-rev);stop-opacity:.34"/><stop offset=".7" style="stop-color:var(--c-rev);stop-opacity:.06"/><stop offset="1" style="stop-color:var(--c-rev);stop-opacity:0"/></linearGradient>
+    <linearGradient id="mcB" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--c-profit);stop-opacity:1"/><stop offset="1" style="stop-color:var(--c-profit);stop-opacity:.45"/></linearGradient>
+    <linearGradient id="mcS" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="mcG" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="6"/></filter>
+    <pattern id="mcH" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" style="stroke:var(--c-rev)" stroke-width="1.4" opacity=".8"/></pattern></defs>`;
   const si = keys.indexOf(selMonth);
-  if (si >= 0) s += `<rect x="${x(si) - sw / 2 + 2}" y="${T - 4}" width="${sw - 4}" height="${H - B - T + 4}" rx="8" fill="rgba(139,156,255,.07)" stroke="rgba(139,156,255,.28)"/>`;
-  const bw = Math.min(16, sw * .34);
-  prof.forEach((v, i) => { if (v != null && v > 0) s += `<rect x="${x(i) - bw / 2}" y="${y(v)}" width="${bw}" height="${y(0) - y(v)}" rx="3" fill="${C.profit}" opacity="${keys[i] === selMonth || !selMonth ? .95 : .7}"/>`; });
-  if (ghostPts) { const gp = prevY.map((v, i) => v == null ? null : `${x(i)},${y(v)}`).filter(Boolean); s += `<polyline points="${gp.join(' ')}" fill="none" stroke="#5a5a66" stroke-width="1.5" stroke-linejoin="round"/>`; }
+  if (si >= 0) s += `<rect x="${x(si) - sw / 2 + 3}" y="${T - 8}" width="${sw - 6}" height="${H - B - T + 8}" rx="10" style="fill:var(--omzet-tint);stroke:var(--omzet-line)"/>`;
+  for (let v = 0; v <= top + 1e-9; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--line)" ${v ? 'stroke-dasharray="2 5"' : ''}/><text x="${L - 10}" y="${y(v) + 3.5}" text-anchor="end">${v ? kfmt(v) : '0'}</text>`;
+  const bw = Math.min(18, sw * .32);
+  prof.forEach((v, i) => {
+    if (v == null || v <= 0) return;
+    const yy0 = y(v), r = Math.min(bw / 2, y(0) - yy0), d = `M${x(i) - bw / 2},${y(0)} V${yy0 + r} a${r},${r} 0 0 1 ${r},${-r} h${bw - 2 * r} a${r},${r} 0 0 1 ${r},${r} V${y(0)} Z`;
+    s += `<g opacity="${keys[i] === selMonth || !selMonth ? 1 : .72}"><path d="${d}" fill="url(#mcB)"/><path d="${d}" fill="url(#mcS)"/></g>`;
+  });
+  if (ghostPts) { const gp = prevY.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean); s += `<path d="${smoothPath(gp)}" fill="none" style="stroke:var(--c-ghost)" stroke-width="1.5" stroke-dasharray="4 5" stroke-linecap="round"/>`; }
   const pts = rev.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
   if (pts.length > 1) {
-    const path = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
-    s += `<path d="${path} L${pts.at(-1)[0]},${y(0)} L${pts[0][0]},${y(0)} Z" fill="url(#ga)"/><path d="${path}" fill="none" stroke="${C.rev}" stroke-width="2" stroke-linejoin="round"/>`;
+    const path = smoothPath(pts);
+    s += `<path d="${path} L${pts.at(-1)[0]},${y(0)} L${pts[0][0]},${y(0)} Z" fill="url(#mcA)"/><path d="${path}" fill="none" style="stroke:var(--c-rev)" stroke-width="6" stroke-opacity=".45" filter="url(#mcG)"/><path d="${path}" fill="none" style="stroke:var(--c-rev)" stroke-width="2.4" stroke-linecap="round"/>`;
   }
-  proj.forEach((p, i) => { if (!p) return; s += `<rect x="${x(i) - 9}" y="${y(p)}" width="18" height="${Math.max(0, y(rev[i]) - y(p))}" rx="3" fill="url(#hp)"/><circle cx="${x(i)}" cy="${y(p)}" r="3.5" fill="var(--bg)" stroke="${C.rev}" stroke-width="1.5"/>`; });
+  proj.forEach((p, i) => { if (!p) return; s += `<rect x="${x(i) - 9}" y="${y(p)}" width="18" height="${Math.max(0, y(rev[i]) - y(p))}" rx="4" fill="url(#mcH)"/><circle cx="${x(i)}" cy="${y(p)}" r="4" style="fill:var(--jewel-top);stroke:var(--c-rev)" stroke-width="2"/>`; });
   if (costPts) {
     const cp = cost.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
-    if (cp.length > 1) s += `<polyline points="${cp.map((p) => p.join(',')).join(' ')}" fill="none" stroke="${C.cost}" stroke-width="1.5" stroke-linejoin="round"/>`;
-    cp.forEach((p) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${C.cost}" stroke="var(--panel)" stroke-width="1.5"/>`; });
+    if (cp.length > 1) s += `<path d="${smoothPath(cp)}" fill="none" style="stroke:var(--c-cost)" stroke-width="1.75" stroke-linecap="round"/>`;
+    cp.forEach((p) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="2.6" style="fill:var(--jewel-top);stroke:var(--c-cost)" stroke-width="1.5"/>`; });
   }
-  pts.forEach((p) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${C.rev}" stroke="var(--panel)" stroke-width="2"/>`; });
-  for (let i = 0; i < 12; i++) s += `<text x="${x(i)}" y="${H - 7}" text-anchor="middle" font-family="Geist" font-size="11" fill="${keys[i] === selMonth ? C.text : rev[i] != null ? C.text2 : '#3a3a44'}" font-weight="${keys[i] === selMonth ? 600 : 400}">${innerWidth < 600 ? MONTHS[i][0] : MONTHS[i]}</text>`;
-  s += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="${C.line2}" opacity="0"/>`;
+  rev.forEach((v, i) => { if (v == null) return; const px = x(i), py = y(v); s += keys[i] === selMonth ? `<circle cx="${px}" cy="${py}" r="10" style="fill:var(--c-rev)" opacity=".2"/><circle cx="${px}" cy="${py}" r="4.5" style="fill:var(--jewel-top);stroke:var(--c-rev)" stroke-width="2.2"/>` : `<circle cx="${px}" cy="${py}" r="3" style="fill:var(--c-rev);stroke:var(--jewel-top)" stroke-width="1.5"/>`; });
+  for (let i = 0; i < 12; i++) s += `<text class="m${keys[i] === selMonth ? ' on' : ''}" x="${x(i)}" y="${H - 8}" text-anchor="middle" ${rev[i] == null ? 'opacity=".45"' : ''}>${innerWidth < 600 ? MONTHS[i][0] : MONTHS[i]}</text>`;
+  s += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${H - B}" style="stroke:var(--line-2)" opacity="0"/>`;
   keys.forEach((k, i) => { if (rev[i] != null) s += `<rect class="hit" data-i="${i}" x="${x(i) - sw / 2}" y="${T}" width="${sw}" height="${H - B - T}" fill="transparent"/>`; });
   el.innerHTML = s + '</svg><div class="tip" id="mainTip"></div>';
   const tip = el.querySelector('#mainTip'), cross = el.querySelector('#cross');
@@ -916,12 +1163,26 @@ function renderMonthCard(k) {
   const winstLabel = src === 'handmatig' ? 'Winst · geschat' : ex == null ? 'Winst' : ex === 1 ? 'Winst · 100% exact' : `Winst · ${Math.round(ex * 100)}% exact`;
   const scale = Math.max(pRev || 0, proj || 0, t.revenue, 1);
   const pay = mPayout(k);
+  // waar ging elke euro omzet heen: inkoop van de verkochte items, retour-/extra kosten, winst
+  let split = '';
+  if (t.revenue > 0 && t.profit >= 0) {
+    const S = fromVinted(k) ? sales.filter((s) => monthKey(s.date) === k) : null;
+    const ic = S ? sum(S, (s) => s.status === 'kosten' ? 0 : sum(s.items, (it) => it.cost)) : 0;
+    const parts = (S ? [['Inkoop', ic, 'var(--c-cost)'], ['Kosten', sum(S, (s) => s.cost || 0) - ic, 'var(--c-neg)'], ['Winst', t.profit, 'var(--c-profit)']]
+      : [['Inkoop en kosten', t.revenue - t.profit, 'var(--c-cost)'], ['Winst', t.profit, 'var(--c-profit)']]).filter((p) => p[1] > 0.004);
+    const geschat = S ? S.some((s) => s.items.some((it) => it.cost_src === 'schatting')) : true;
+    split = `<div class="split"><div class="cap"><span>Van elke € omzet</span>${geschat ? '<span>deels geschat</span>' : '<span>exact</span>'}</div>
+      <div class="bar">${parts.map((p) => `<i style="flex:${p[1]};background:${p[2]}"></i>`).join('')}</div>
+      <div class="leg" style="--n:${parts.length}">${parts.map((p) => `<div><span><i style="background:${p[2]}"></i>${p[0]}</span><b>${Math.round(p[1] / t.revenue * 100)} ct<small>${eur(p[1])}</small></b></div>`).join('')}</div></div>`;
+  }
   document.getElementById('monthCard').innerHTML = `
-    <div class="ct"><h3 style="color:var(--text);font-weight:600;text-transform:capitalize">${MONTHS_FULL[i]} ${yy}</h3>${isCur ? `<span class="live">live · dag ${D}/${DIM}</span>` : `<span class="chip">${src === 'vinted' ? 'Vinted' : 'handmatig'}</span>`}</div>
+    <div class="orb"><i style="background:radial-gradient(closest-side,var(--orb-cobalt),transparent)"></i><i style="background:radial-gradient(closest-side,var(--orb-rose),transparent)"></i></div>
+    <div class="ct"><h3 style="text-transform:capitalize">${MONTHS_FULL[i]} ${yy}</h3>${isCur ? `<span class="live">live · dag ${D}/${DIM}</span>` : `<span class="chip">${src === 'vinted' ? 'Vinted' : 'handmatig'}</span>`}</div>
     <div class="v"><span id="mRev"></span></div>
     <div class="sub">omzet${proj ? ` · prognose <b>${eur(proj)}</b>` : ''} ${c ? pctDelta(c.cur, c.prev, `t.o.v. ${rangeLabel(c.months)}`) : ''}</div>
     ${pRev != null ? `<div class="meter"><i style="width:${t.revenue / scale * 100}%"></i>${proj ? `<u style="left:${t.revenue / scale * 100}%;width:${(proj - t.revenue) / scale * 100}%"></u>` : ''}<b style="left:${pRev / scale * 100}%"></b></div>
       <div class="ml"><span>${isCur ? 'nu' : MONTHS_FULL[i]}</span><span>${MONTHS_FULL[+pk.slice(5, 7) - 1]} ${eur(pRev)}</span></div>` : ''}
+    ${split}
     <div class="list">
       <div><span>${winstLabel}</span><span class="${t.profit < 0 ? 'neg' : 'pos'}">${eur2(t.profit)}</span></div>
       <div><span>Marge</span><span>${pct(t.revenue ? t.profit / t.revenue : null)}</span></div>
@@ -941,15 +1202,18 @@ function renderGauge() {
   const total = sum(all, mRev);
   const last6 = all.filter((k) => k !== CUR).slice(-6), pace = last6.length ? sum(last6, mRev) / last6.length : 0;
   const left = Math.max(0, goal - total), n = pace > 0 ? Math.ceil(left / pace) : null, eta = n != null ? new Date(Y, M + n, 1) : null;
-  const p = Math.min(1, total / goal), R = 110, cx = 140, cy = 130;
-  const pt = (a, r = R) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-  const [x0, y0] = pt(Math.PI), [x1, y1] = pt(Math.PI + Math.max(.001, p) * Math.PI), [xe, ye] = pt(2 * Math.PI);
-  let ticks = ''; for (let i = 0; i <= 10; i++) { const a = Math.PI + i / 10 * Math.PI, [ax, ay] = pt(a, R + 14), [bx, by] = pt(a, R + (i % 5 ? 18 : 23)); ticks += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="${C.line2}" stroke-width="1.5"/>`; }
+  const p = Math.min(1, total / goal), R = 78, C0 = 100, SW = 14, A0 = 225, SWEEP = 270;
+  const pt = (deg, r = R) => { const a = (deg - 90) * Math.PI / 180; return [C0 + r * Math.cos(a), C0 + r * Math.sin(a)]; };
+  const arc = (from, to) => { const [sx, sy] = pt(from), [ex, ey] = pt(to); return `M${sx.toFixed(2)} ${sy.toFixed(2)} A${R} ${R} 0 ${to - from > 180 ? 1 : 0} 1 ${ex.toFixed(2)} ${ey.toFixed(2)}`; };
+  const end = A0 + SWEEP * Math.max(p, .004), [tx, ty] = pt(end);
+  let ticks = ''; [.25, .5, .75].forEach((f) => { const [ax, ay] = pt(A0 + SWEEP * f, R - SW / 2 - 6), [bx, by] = pt(A0 + SWEEP * f, R - SW / 2 - 1); ticks += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="${C.muted}" stroke-opacity=".4" stroke-width="1.5" stroke-linecap="round"/>`; });
   document.getElementById('goalLabel').textContent = eur(goal);
-  document.getElementById('goalPace').textContent = `${eur(pace)}/mnd`;
-  document.getElementById('gauge').innerHTML = `<svg viewBox="0 0 280 150"><defs><linearGradient id="gg"><stop offset="0" stop-color="#5b6cf0"/><stop offset="1" stop-color="${C.profit}"/></linearGradient></defs>${ticks}
-    <path d="M${x0},${y0} A${R},${R} 0 0 1 ${xe},${ye}" fill="none" stroke="${C.line}" stroke-width="14" stroke-linecap="round"/>
-    <path d="M${x0},${y0} A${R},${R} 0 0 1 ${x1},${y1}" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round"/></svg>
+  document.getElementById('goalPace').innerHTML = `<span class="chip" style="color:var(--omzet-text);background:var(--omzet-tint)">${eur(pace)}/mnd</span>`;
+  document.getElementById('gauge').innerHTML = `<svg viewBox="0 0 200 172"><defs><linearGradient id="goalG" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FF8A3D"/><stop offset=".55" stop-color="#F23B4E"/><stop offset="1" stop-color="#FF4FA3"/></linearGradient>
+    <filter id="goalF" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter></defs>
+    <path d="${arc(A0, A0 + SWEEP)}" fill="none" stroke="${C.line}" stroke-width="${SW}" stroke-linecap="round" style="stroke:var(--track)"/>${ticks}
+    <path d="${arc(A0, end)}" fill="none" stroke="url(#goalG)" stroke-width="${SW}" stroke-linecap="round" opacity=".55" filter="url(#goalF)"/>
+    <path d="${arc(A0, end)}" fill="none" stroke="url(#goalG)" stroke-width="${SW}" stroke-linecap="round"/><circle cx="${tx}" cy="${ty}" r="4" fill="#fff" opacity=".9"/></svg>
     <div class="c"><div class="v">${eur(total)}</div><div class="n">${(p * 100).toLocaleString('nl-NL', { maximumFractionDigits: 1 })}% van ${eur(goal)}</div></div>`;
   document.getElementById('gstats').innerHTML = left <= 0 ? '<div style="grid-column:1/-1;text-align:center"><b class="pos">Doel bereikt!</b></div>'
     : `<div><span>Nog te gaan</span><b>${eur(left)}</b></div><div><span>Tempo</span><b>${eur(pace)}</b></div><div><span>Doel bereikt</span><b>${eta ? MONTHS[eta.getMonth()] + ' ' + eta.getFullYear() : '–'}</b></div>`;
@@ -958,9 +1222,10 @@ function renderGauge() {
 function renderPipeline() {
   const vraag = sum(STOCK, (s) => s.price);
   const stages = V
-    ? [['Onderweg', V.onderweg.n, `${eur(V.onderweg.inkoop)} inkoopwaarde`, C.cost], ['Thuis', V.thuis.n, V.thuis.n ? 'klaar om te plaatsen' : 'niets op de plank', C.accent], ['Online', V.online.n, `${eur(V.online.vraag)} vraagwaarde`, C.rev]]
-    : [['Onderweg', null, 'na Vinted-koppeling', C.cost], ['Thuis', null, 'na Vinted-koppeling', C.accent], ['Online', STOCK.length || null, STOCK.length ? `${eur(vraag)} vraagwaarde` : 'na Vinted-koppeling', C.rev]];
-  document.getElementById('flow').innerHTML = stages.map(([l, n, sub, c], i) => `${i ? `<div class="arrow">${icon('arrow', 14)}</div>` : ''}<div class="stage"><div class="l"><span class="dotc" style="background:${c}"></span>${l}</div><div class="v">${n == null ? '–' : num(n)}</div><div class="n">${sub}</div></div>`).join('');
+    ? [['Onderweg', V.onderweg.n, `${eur(V.onderweg.inkoop)} inkoopwaarde`, 'truck', 'omzet'], ['Thuis', V.thuis.n, V.thuis.n ? `${eur(V.thuis.inkoop)} · klaar om te plaatsen` : 'niets op de plank', 'home', 'inkoop'], ['Online', V.online.n, `${eur(V.online.vraag)} vraagwaarde`, 'store', 'winst']]
+    : [['Onderweg', null, 'na Vinted-koppeling', 'truck', 'omzet'], ['Thuis', null, 'na Vinted-koppeling', 'home', 'inkoop'], ['Online', STOCK.length || null, STOCK.length ? `${eur(vraag)} vraagwaarde` : 'na Vinted-koppeling', 'store', 'winst']];
+  const ORB = { omzet: 'var(--orb-cobalt)', inkoop: 'var(--orb-amber)', winst: 'var(--orb-emerald)' };
+  document.getElementById('flow').innerHTML = stages.map(([l, n, sub, ic, tone], i) => `${i ? `<div class="arrow">${icon('arrow', 14)}</div>` : ''}<div class="stage" style="--so:${ORB[tone]}"><div class="l"><span class="si" style="background:var(--${tone}-tint);color:var(--${tone}-text)">${icon(ic, 15)}</span>${l}</div><div class="v">${n == null ? '–' : num(n)}</div><div class="n">${sub}</div></div>`).join('');
   const byBrand = [...groupBy(STOCK, (s) => s.brand || 'Overig')].map(([b, rs]) => ({ b, n: rs.length, v: sum(rs, (s) => s.price) })).sort((a, b) => b.v - a.v).slice(0, 6);
   const bmax = Math.max(1, ...byBrand.map((r) => r.v));
   document.getElementById('brandTotal').textContent = STOCK.length ? eur(vraag) : '';
@@ -1005,11 +1270,147 @@ function renderFeed() {
   document.getElementById('feed').innerHTML = shown.map(([tone, ic, t, p]) => `<div class="f"><span class="ic ${tone}">${icon(ic)}</span><div><b>${t}</b><p>${p}</p></div></div>`).join('');
 }
 
+
+// ================= Glas: extra weergaven =================
+// vloeiende lijn (monotoon, schiet niet door) door punten [[x, y], …]
+function smoothPath(pts) {
+  const n = pts.length; if (!n) return ''; if (n < 3) return pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
+  const dx = [], m = [], t = [];
+  for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; m[i] = (pts[i + 1][1] - pts[i][1]) / dx[i]; }
+  t[0] = m[0]; t[n - 1] = m[n - 2];
+  for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / m[i - 1] + (dx[i] + 2 * dx[i - 1]) / m[i]);
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < n - 1; i++) { const c = dx[i] / 3; d += ` C${pts[i][0] + c},${pts[i][1] + t[i] * c} ${pts[i + 1][0] - c},${pts[i + 1][1] - t[i + 1] * c} ${pts[i + 1][0]},${pts[i + 1][1]}`; }
+  return d;
+}
+
+// Beste producten: verkochte items per merk + categorie in het gekozen jaar (alleen Vinted-verkopen)
+function renderMix() {
+  const SI = sales.filter((s) => s.date.slice(0, 4) === String(heroYear) && fromVinted(monthKey(s.date))).flatMap((s) => s.items);
+  const box = document.getElementById('mix');
+  if (!SI.length) {
+    document.getElementById('mixSub').textContent = ''; document.getElementById('mixNote').textContent = '';
+    box.innerHTML = `<div class="note" style="padding:0 20px 20px;margin:0">Nog geen losse Vinted-verkopen in ${heroYear}. Per product zie je hier winst, rendement en snelheid zodra ze binnenkomen.</div>`;
+    return;
+  }
+  const rows = [...groupBy(SI, (r) => `${r.brand || 'Overig'}|${r.cat || 'Overig'}`)].map(([k, rs]) => {
+    const [brand, cat] = k.split('|'), rev = sum(rs, (x) => x.price), c = sum(rs, (x) => x.cost), d = rs.map((x) => x.days).filter((v) => v != null);
+    return { name: `${brand} · ${cat.toLowerCase()}`, n: rs.length, avg: rev / rs.length, ppi: (rev - c) / rs.length, profit: rev - c, roi: c ? (rev - c) / c : null, days: d.length ? Math.round(median(d)) : null, est: rs.some((x) => x.cost_src === 'schatting') };
+  });
+  rows.sort((a, b) => b.profit - a.profit).splice(8);   // de 8 producten met de meeste winst
+  const maxP = Math.max(1, ...rows.map((r) => r.ppi));
+  document.getElementById('mixSub').textContent = `Top ${rows.length} van ${SI.length} verkochte items in ${heroYear} · klik een kolom om te sorteren`;
+  document.getElementById('mixNote').innerHTML = rows.some((r) => r.est) ? '<span class="warn">*</span> deels geschatte inkoop' : '';
+  box.innerHTML = '<div class="tablewrap" style="border:0;border-radius:0;max-height:none;background:none"><table id="tMix"></table></div>';
+  table('tMix', [
+    { k: 'name', h: 'Product', f: (v, r) => `<b style="font-weight:500">${esc(v)}</b>${r.est ? '<span class="warn">*</span>' : ''}` },
+    { k: 'n', h: 'Verkocht', num: 1 },
+    { k: 'ppi', h: 'Winst per stuk', f: (v) => `<span class="mbar"><u><i style="width:${Math.max(0, v) / maxP * 100}%"></i></u><b class="${v < 0 ? 'neg' : ''}">${eur2(v)}</b></span>` },
+    { k: 'roi', h: 'Rendement', num: 1, f: (v) => pct(v) }, { k: 'days', h: 'Dagen', num: 1, f: (v) => v == null ? '–' : v + ' d' },
+    { k: 'profit', h: 'Totaal', num: 1, f: (v) => `<span class="${v < 0 ? 'neg' : 'pos'}">${eur(v)}</span>` },
+  ], rows, 'profit');
+}
+
+// Verkoopritme: verkopen per weekdag over de laatste 12 weken (vanaf je eerste Vinted-verkoop)
+function renderRhythm() {
+  const el = document.getElementById('rhythm'), sub = document.getElementById('rhythmSub');
+  const S = sales.filter((s) => s.status !== 'kosten');
+  if (!S.length) { sub.textContent = ''; el.innerHTML = '<div class="note" style="margin:0">Je verkoopritme verschijnt zodra er Vinted-verkopen binnenkomen.</div>'; return; }
+  const dn = (iso) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 864e5;   // dagnummer, zonder zomertijd-gedoe
+  const today = dn(TODAY), dowT = (new Date(Y, M, D).getDay() + 6) % 7, start = today - dowT - 11 * 7;   // maandag 11 weken terug
+  const first = dn(S.map((s) => s.date.slice(0, 10)).sort()[0]);
+  const W = 12, vals = [...Array(7)].map(() => Array(W).fill(0));
+  for (const s of S) { const d = dn(s.date.slice(0, 10)), w = Math.floor((d - start) / 7); if (w >= 0 && w < W) vals[(d - start) % 7][w]++; }
+  const max = Math.max(1, ...vals.flat()), sums = vals.map((r) => r.reduce((a, b) => a + b, 0)), total = sums.reduce((a, b) => a + b, 0), smax = Math.max(1, ...sums);
+  const DAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'], LONG = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+  const order = sums.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
+  sub.textContent = total < 8 ? 'Nog weinig verkopen voor een vast patroon' : `${LONG[order[0][1]][0].toUpperCase() + LONG[order[0][1]].slice(1)} en ${LONG[order[1][1]]}: ${Math.round((order[0][0] + order[1][0]) / total * 100)}% van je verkopen`;
+  const cols = `repeat(${W}, minmax(0, 1fr))`, dl = (n) => { const d = new Date(n * 864e5); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`; }, label = (w) => dl(start + w * 7);
+  const veil = (v) => (1 - [.22, .42, .62, .82, 1][Math.min(4, Math.ceil(v / max * 5) - 1)]).toFixed(2);
+  el.innerHTML = `<div class="heat">${DAYS.map((dname, di) => `<span class="d">${dname}</span><div class="r" style="grid-template-columns:${cols}">${vals[di].map((v, w) => {
+      const before = start + w * 7 + di < first;
+      return `<span class="c${v ? ' on' : ''}" style="${v ? `--veil:${veil(v)}` : before ? 'opacity:.35' : ''}" title="${LONG[di]} ${dl(start + w * 7 + di)}: ${before ? 'nog geen Vinted-data' : v + (v === 1 ? ' verkoop' : ' verkopen')}"></span>`;
+    }).join('')}</div><span class="s"><i style="width:${Math.max(3, sums[di] / smax * 30)}px"></i>${sums[di]}</span>`).join('')}
+    <span></span><div class="w" style="grid-template-columns:${cols}">${[...Array(W)].map((_, w) => `<span>${w % 4 === 0 ? label(w) : ''}</span>`).join('')}</div><span></span></div>
+    <div class="hscale"><span>week van maandag t/m zondag</span><span>minder <i style="background:var(--track)"></i>${[.22, .42, .62, .82, 1].map((o) => `<i style="background:var(--c-profit)"><span style="position:absolute;inset:0;background:var(--glass-strong);opacity:${(1 - o).toFixed(2)}"></span></i>`).join('')} meer</span></div>`;
+}
+
+// Van omzet naar winst: waterval over de Vinted-maanden in de gekozen periode
+function renderWaterfall(ks) {
+  const card = document.getElementById('wfCard'), el = document.getElementById('wf');
+  const vk = ks.filter(fromVinted), S = sales.filter((s) => vk.includes(monthKey(s.date)));
+  card.style.display = HAS_VINTED && S.length ? '' : 'none';
+  if (!HAS_VINTED || !S.length || !el.clientWidth) return;
+  const omzet = sum(S, (s) => s.price), its = S.flatMap((s) => s.items);
+  const exact = sum(its.filter((x) => x.cost_src === 'koppeling'), (x) => x.cost), guess = sum(its.filter((x) => x.cost_src !== 'koppeling'), (x) => x.cost);
+  const kosten = sum(S, (s) => s.cost || 0) - exact - guess, winst = omzet - exact - guess - kosten;
+  const steps = [['Omzet', omzet, 'start', 'var(--c-rev)'], ['Inkoop\ngekoppeld', exact, 'min', 'var(--c-cost)'], ['Inkoop\ngeschat', guess, 'min', 'var(--c-cost)'], ['Retour- en\nextra kosten', kosten, 'min', 'var(--c-neg)'], ['Winst', winst, 'total', 'var(--c-profit)']]
+    .filter((s) => s[2] !== 'min' || s[1] > 0.004);
+  const names = vk.map((k) => MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4));
+  document.getElementById('wfSub').textContent = `${names.length > 1 ? names[0] + ' – ' + names.at(-1) : names[0]}${vk.length < ks.length ? ' · alleen maanden uit Vinted' : ''} · elke euro verklaard`;
+  let run = 0; const bars = steps.map(([l, v, kind, col]) => { let a, b; if (kind === 'start') { a = 0; b = v; run = v; } else if (kind === 'total') { a = 0; b = run; } else { a = run; b = run - v; run = b; } return { l, v: kind === 'total' ? b : v, kind, col, a, b }; });
+  const lo = Math.min(0, ...bars.map((b) => Math.min(b.a, b.b))), hi = Math.max(1, ...bars.map((b) => Math.max(b.a, b.b)));
+  const step = niceStep((hi - lo) / 4), top = Math.ceil(hi / step) * step, bot = Math.floor(lo / step) * step;
+  const Wd = el.clientWidth, H = el.clientHeight, L = 48, R = 8, T = 26, B = 42, bw = (Wd - L - R) / bars.length, cw = Math.min(60, bw * .56);
+  const y = (v) => T + (top - v) / (top - bot) * (H - T - B), xc = (i) => L + bw * i + bw / 2;
+  let s = `<svg viewBox="0 0 ${Wd} ${H}"><defs><linearGradient id="wfS" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  for (let v = bot; v <= top + 1e-9; v += step) s += `<line x1="${L}" x2="${Wd - R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--line)" ${v ? 'stroke-dasharray="2 5"' : ''}/><text x="${L - 10}" y="${y(v) + 3.5}" text-anchor="end">${v ? (v < 0 ? '−' : '') + kfmt(Math.abs(v)) : '0'}</text>`;
+  bars.forEach((b, i) => {
+    if (i) s += `<line x1="${xc(i - 1) + cw / 2}" x2="${xc(i) - cw / 2}" y1="${y(bars[i - 1].b)}" y2="${y(bars[i - 1].b)}" style="stroke:var(--c-ghost)" stroke-dasharray="3 3"/>`;
+    const t0 = y(Math.max(b.a, b.b)), h = Math.max(2, y(Math.min(b.a, b.b)) - t0), rx = Math.min(8, h / 2);
+    const lbl = (b.kind === 'min' ? '−' : '') + eur(b.v);
+    s += `<g><title>${b.l.replace('\n', ' ')}: ${lbl}</title><rect x="${xc(i) - cw / 2}" y="${t0}" width="${cw}" height="${h}" rx="${rx}" style="fill:${b.col}" opacity="${b.kind === 'min' ? .85 : 1}"/><rect x="${xc(i) - cw / 2}" y="${t0}" width="${cw}" height="${h}" rx="${rx}" fill="url(#wfS)"/>
+      <text class="v" x="${xc(i)}" y="${t0 - 8}" text-anchor="middle">${lbl}</text>${b.l.split('\n').map((p, j) => `<text class="l" x="${xc(i)}" y="${H - 24 + j * 13}" text-anchor="middle">${p}</text>`).join('')}</g>`;
+  });
+  el.innerHTML = s + '</svg>';
+}
+
+// Merkenmatrix als glazen bollen (zelfde indeling en kwadranten als hiervoor)
+function drawMatrix(pts, xMid, yMid, maxRev) {
+  const el = document.getElementById('matrix'); if (!el.clientWidth) return;
+  if (!pts.length) { el.innerHTML = '<div class="note" style="padding:60px 0;text-align:center">Nog te weinig verkopen per merk (minstens 2) voor de matrix.</div>'; return; }
+  const W = el.clientWidth, H = el.clientHeight, L = 58, R = 22, T = 12, B = 46, iw = W - L - R, ih = H - T - B;
+  const xs = pts.map((b) => b.days), ys = pts.map((b) => b.ppi), nice = (v, st) => Math.ceil(v / st) * st;
+  const xMax = nice(Math.max(10, ...xs) * 1.1, 5), yMin = -nice(-Math.min(0, ...ys) * 1.15, 5), yMax = nice(Math.max(5, ...ys) * 1.15, 5);
+  const x = (d) => L + (1 - d / xMax) * iw, y = (v) => T + (yMax - v) / (yMax - yMin) * ih;
+  const px = x(xMid), py = y(yMid);
+  const COL = { top: '--c-profit', luc: '--c-rev', draai: '--c-warn', vermijd: '--c-neg' }, TXT = { top: '--winst-text', luc: '--omzet-text', draai: '--inkoop-text', vermijd: '--neg-text' };
+  const rad = (b) => 10 + Math.sqrt(b.rev / maxRev) * 26;
+  let s = `<svg viewBox="0 0 ${W} ${H}"><defs>${Object.entries(COL).map(([k, c]) => `<radialGradient id="mx${k}" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".3" style="stop-color:var(${c});stop-opacity:.42"/><stop offset="1" style="stop-color:var(${c});stop-opacity:.86"/></radialGradient>`).join('')}<filter id="mxF" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs>
+    <rect x="${px}" y="${T}" width="${W - R - px}" height="${py - T}" style="fill:var(--winst-tint)"/><rect x="${L}" y="${T}" width="${px - L}" height="${py - T}" style="fill:var(--omzet-tint)"/>
+    <rect x="${px}" y="${py}" width="${W - R - px}" height="${T + ih - py}" style="fill:var(--inkoop-tint)"/><rect x="${L}" y="${py}" width="${px - L}" height="${T + ih - py}" style="fill:var(--neg-tint)"/>`;
+  const ys5 = niceStep((yMax - yMin) / 4);
+  for (let v = Math.ceil(yMin / ys5) * ys5; v <= yMax + 1e-9; v += ys5) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--line)" ${v ? 'stroke-dasharray="2 6"' : ''}/><text x="${L - 10}" y="${y(v) + 3.5}" text-anchor="end">${eur(v)}</text>`;
+  [0, xMax / 2, xMax].forEach((d) => { s += `<text x="${x(d)}" y="${T + ih + 18}" text-anchor="middle">${num(d)} d</text>`; });
+  s += `<line x1="${px}" x2="${px}" y1="${T}" y2="${T + ih}" style="stroke:var(--line-2)" stroke-dasharray="3 4"/><line x1="${L}" x2="${W - R}" y1="${py}" y2="${py}" style="stroke:var(--line-2)" stroke-dasharray="3 4"/>`;
+  [['top', W - R - 12, T + 20, 'end'], ['luc', L + 12, T + 20, 'start'], ['draai', W - R - 12, T + ih - 12, 'end'], ['vermijd', L + 12, T + ih - 12, 'start']]
+    .forEach(([k, xx, yy, an]) => { s += `<text class="q" x="${xx}" y="${yy}" text-anchor="${an}" style="fill:var(${TXT[k]})">${QUADS[k].icon}  ${QUADS[k].name}</text>`; });
+  s += `<text class="ax" x="${L + iw / 2}" y="${H - 6}" text-anchor="middle">← trager verkocht   ·   dagen tot verkoop (mediaan)   ·   sneller verkocht →</text><text class="ax" transform="translate(14 ${T + ih / 2}) rotate(-90)" text-anchor="middle">winst per stuk</text>`;
+  const order = pts.map((b, i) => [b, i]).sort((a, b) => b[0].rev - a[0].rev);
+  order.forEach(([b, i]) => {
+    const r = rad(b), cx = x(b.days), cy = y(b.ppi), right = cx + r + 10 + b.brand.length * 7 < W - R;
+    s += `<g class="bub" data-i="${i}" tabindex="0"><circle cx="${cx}" cy="${cy + 5}" r="${r * .9}" style="fill:var(${COL[b.q]})" opacity=".35" filter="url(#mxF)"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#mx${b.q})" style="stroke:var(${COL[b.q]})" stroke-width="1.5"/>
+      <ellipse cx="${cx - r * .28}" cy="${cy - r * .42}" rx="${r * .42}" ry="${r * .2}" fill="#fff" opacity=".55"/><text class="lb" x="${right ? cx + r + 7 : cx - r - 7}" y="${cy + 4}" text-anchor="${right ? 'start' : 'end'}">${esc(b.brand)}</text></g>`;
+  });
+  el.innerHTML = s + '</svg><div class="tip" id="mxTip"></div>';
+  const tip = el.querySelector('#mxTip'), gs = el.querySelectorAll('.bub');
+  gs.forEach((g) => {
+    const b = pts[+g.dataset.i], show = () => {
+      gs.forEach((o) => o.classList.toggle('dim', o !== g));
+      tip.innerHTML = `<b style="text-transform:none">${esc(b.brand)} · ${QUADS[b.q].name}</b>${tipRow('Winst/stuk', eur2(b.ppi))}${tipRow('Dagen', b.days)}${tipRow('Omzet', `${eur(b.rev)} (${b.n} st)`)}${tipRow('Marge', pct(b.margin))}<div style="margin-top:6px;color:var(--muted);font-size:12px">${QUADS[b.q].tip}</div>`;
+      tip.classList.add('on');
+      const r = rad(b), cx = x(b.days); tip.style.left = (cx + r + 230 > W ? cx - r - tip.offsetWidth - 12 : cx + r + 12) + 'px'; tip.style.top = Math.max(4, y(b.ppi) - 40) + 'px';
+    }, hide = () => { gs.forEach((o) => o.classList.remove('dim')); tip.classList.remove('on'); };
+    g.onmouseenter = show; g.onfocus = show; g.onmouseleave = hide; g.onblur = hide;
+  });
+}
+
 // ================= FINANCIËN =================
 function renderFinance() {
   const from = period.id === 'all' ? FIRSTM : [FIRSTM, monthKey(period.from)].sort()[1];
   const ks = monthsRange(from, CUR).filter((k) => mSrc(k));
   const t = sumMonths(ks);
+  renderWaterfall(ks);
   const margin = t.revenue ? t.profit / t.revenue : null;
   const d = (m) => { const c = period.id === 'all' ? null : compare(ks, m); return c && c.months.length === ks.length ? pctDelta(c.cur, c.prev, `t.o.v. ${rangeLabel(c.months)}`) : ''; };
   const cItems = period.id === 'all' ? null : compare(ks, 'items'), cRev = period.id === 'all' ? null : compare(ks, 'rev');
@@ -1057,52 +1458,10 @@ function renderBrands(S) {
   const quad = (b) => b.days == null ? null : (b.ppi >= yMid ? (b.days <= xMid ? 'top' : 'luc') : (b.days <= xMid ? 'draai' : 'vermijd'));
   all.forEach((b) => { b.q = b.n >= 2 ? quad(b) : null; });
   const maxRev = Math.max(1, ...pts.map((b) => b.rev));
-
-  charts.cMatrix?.destroy();
-  const xs = pts.map((b) => b.days), ys = pts.map((b) => b.ppi);
-  const nice = (v, st) => Math.ceil(v / st) * st;
-  const xMax = nice(Math.max(10, ...xs) * 1.1, 5), yMin = -nice(-Math.min(0, ...ys) * 1.15, 5), yMax = nice(Math.max(5, ...ys) * 1.15, 5);
-  charts.cMatrix = new Chart(document.getElementById('cMatrix'), {
-    type: 'bubble',
-    data: { datasets: [{ data: pts.map((b) => ({ x: b.days, y: b.ppi, r: 7 + Math.sqrt(b.rev / maxRev) * 20, b })),
-      backgroundColor: pts.map((b) => alpha(QUADS[b.q].col(), 0.4)), borderColor: pts.map((b) => QUADS[b.q].col()), borderWidth: 1.5, hoverBorderWidth: 2.5 }] },
-    options: {
-      maintainAspectRatio: false, animation: { duration: 600 },
-      layout: { padding: { top: 10, right: 16 } },
-      plugins: {
-        legend: { display: false },
-        tooltip: tooltip(null, (c) => { const b = c.raw.b; return [` ${b.brand} · ${QUADS[b.q].name}`, ` Winst/stuk  ${eur2(b.ppi)}`, ` Dagen       ${b.days}`, ` Omzet       ${eur(b.rev)} (${b.n} st)`, ` Marge       ${pct(b.margin)}`]; }),
-      },
-      scales: {
-        x: { reverse: true, min: 0, max: xMax, grid: { color: C.line }, border: { display: false }, title: { display: true, text: '← trager verkocht        dagen tot verkoop (mediaan)        sneller verkocht →', color: C.muted }, ticks: { font: monoTicks() } },
-        y: { min: yMin, max: yMax, grid: { color: C.line }, border: { display: false }, title: { display: true, text: 'winst per stuk', color: C.muted }, ticks: { callback: (v) => eur(v), font: monoTicks() } },
-      },
-    },
-    plugins: [{
-      id: 'quadrants',
-      beforeDatasetsDraw(ch) {
-        const { ctx, chartArea: a, scales: { x, y } } = ch; const px = x.getPixelForValue(xMid), py = y.getPixelForValue(yMid);
-        ctx.save();
-        const fill = (x0, y0, x1, y1, col) => { ctx.fillStyle = alpha(col, 0.05); ctx.fillRect(x0, y0, x1 - x0, y1 - y0); };
-        fill(px, a.top, a.right, py, C.profit); fill(a.left, a.top, px, py, C.rev); fill(px, py, a.right, a.bottom, C.warn); fill(a.left, py, px, a.bottom, C.neg);
-        ctx.strokeStyle = C.line2; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
-        ctx.font = `500 11px ${C.font}`; ctx.fillStyle = C.muted;
-        const lab = (t, xx, yy, al) => { ctx.textAlign = al; ctx.fillText(t, xx, yy); };
-        lab(`★ ${QUADS.top.name}`, a.right - 10, a.top + 16, 'right'); lab(`◆ ${QUADS.luc.name}`, a.left + 10, a.top + 16, 'left');
-        lab(`↻ ${QUADS.draai.name}`, a.right - 10, a.bottom - 10, 'right'); lab(`! ${QUADS.vermijd.name}`, a.left + 10, a.bottom - 10, 'left');
-        ctx.restore();
-      },
-      afterDatasetsDraw(ch) {
-        const { ctx } = ch; const meta = ch.getDatasetMeta(0);
-        ctx.save(); ctx.font = `500 12px ${C.font}`; ctx.fillStyle = C.text; ctx.textBaseline = 'middle';
-        meta.data.forEach((el, i) => { ctx.textAlign = 'left'; ctx.fillText(pts[i].brand, el.x + el.options.radius + 5, el.y); });
-        ctx.restore();
-      },
-    }],
-  });
+  drawMatrix(pts, xMid, yMid, maxRev);
   document.getElementById('quadLegend').innerHTML = Object.entries(QUADS).map(([k, q]) => {
     const names = all.filter((b) => b.q === k).sort((a, b) => b.rev - a.rev).map((b) => b.brand);
-    return `<div><span class="dot" style="background:${q.col()};margin-top:4px"></span><span><b>${q.icon} ${q.name}</b>${q.tip}${names.length ? `<br><span style="color:var(--text)">${esc(names.slice(0, 4).join(', '))}${names.length > 4 ? ` +${names.length - 4}` : ''}</span>` : ''}</span></div>`;
+    return `<div><span class="dot" style="background:${q.col()};color:${q.col()}"></span><span><b>${q.icon} ${q.name}</b>${q.tip}${names.length ? `<br><span style="color:var(--text);font-weight:500">${esc(names.slice(0, 4).join(', '))}${names.length > 4 ? ` +${names.length - 4}` : ''}</span>` : ''}</span></div>`;
   }).join('');
 
   const last6 = monthsRange(monthKey(ymd(new Date(Y, M - 5, 1))), monthKey(TODAY));
@@ -1112,13 +1471,13 @@ function renderBrands(S) {
   const shown = showAllCards ? sorted : sorted.slice(0, 8);
   document.getElementById('cardsDesc').textContent = `${sorted.length} merken · gesorteerd op omzet · lijn = omzet laatste 6 maanden`;
   document.getElementById('brandCards').innerHTML = shown.map((b) => {
-    const q = b.q ? QUADS[b.q] : null;
-    const badge = q ? `<span class="qbadge" style="color:${q.col()};background:${alpha(q.col(), 0.12)}">${q.icon} ${q.name}</span>` : `<span class="qbadge" style="color:var(--muted);background:var(--card-2)">te weinig data</span>`;
-    return `<div class="card bcard"><div class="hd"><span class="nm">${esc(b.brand)}</span>${badge}</div>
+    const q = b.q ? QUADS[b.q] : null, col = q ? q.col() : C.muted;
+    const badge = q ? `<span class="qbadge" style="color:${col};background:${alpha(col, 0.12)}">${q.icon} ${q.name}</span>` : `<span class="qbadge" style="color:var(--muted);background:var(--card-2)">te weinig data</span>`;
+    return `<div class="card bcard">${orbFor(col)}<div class="hd"><span class="nm">${esc(b.brand)}</span>${badge}</div>
       <div class="big">${eur(b.rev)}</div><div style="font-size:12px;color:var(--muted)">omzet · ${b.n} verkocht</div>
       <div class="stats"><div>Winst/stuk<b class="${b.ppi < 0 ? 'neg' : ''}">${eur2(b.ppi)}</b></div><div>Marge<b>${pct(b.margin)}</b></div><div>Dagen<b>${b.days ?? '–'}</b></div>
       <div>Gem. prijs<b>${eur2(b.avg)}</b></div><div>Gem. inkoop<b>${eur2(b.avgCost)}</b></div><div>Voorraad<b>${b.stock}</b></div></div>
-      ${sparkSvg(last6.map(monthly(byBrandAll.get(b.brand) || [], (x) => x.price)), q ? q.col() : C.muted, true)}</div>`;
+      ${sparkSvg(last6.map(monthly(byBrandAll.get(b.brand) || [], (x) => x.price)), col, true)}</div>`;
   }).join('') || '<div class="card" style="color:var(--muted)">Nog geen verkopen in deze periode.</div>';
   const more = document.getElementById('moreCards');
   more.hidden = sorted.length <= 8; more.textContent = showAllCards ? 'Toon minder' : `Toon alle ${sorted.length} merken`;
@@ -1211,9 +1570,16 @@ const SUBS = {
 };
 let tab = TABS.some(([k]) => k === location.hash.slice(1)) ? location.hash.slice(1) : 'overzicht';
 const tabsEl = document.getElementById('tabs');
-tabsEl.innerHTML = TABS.map(([k, l]) => `<button role="tab" data-t="${k}" aria-selected="${k === tab}">${l}</button>`).join('');
+const NAV = { overzicht: ['Analyse', 'grid'], financien: ['Analyse', 'chart'], merken: ['Analyse', 'tag'], inkoop: ['Operatie', 'box'], voorraad: ['Operatie', 'list'], transacties: ['Operatie', 'swap'], kansen: ['Groei', 'spark'] };
+const NAV_ORDER = Object.keys(NAV);
+let navSec = null;
+tabsEl.innerHTML = [...TABS].sort((a, b) => (NAV_ORDER.indexOf(a[0]) + 1 || 99) - (NAV_ORDER.indexOf(b[0]) + 1 || 99)).map(([k, l]) => {
+  const [sec, ic] = NAV[k] || ['Meer', 'arrow'], head = sec !== navSec ? `<div class="nl">${sec}</div>` : ''; navSec = sec;
+  const cnt = k === 'inkoop' && V && V.thuis.n ? `<span class="cnt" title="${V.thuis.n} items thuis, klaar om online te zetten">${V.thuis.n}</span>` : '';
+  return `${head}<button role="tab" data-t="${k}" aria-selected="${k === tab}">${icon(ic, 17)}<span>${l}</span>${cnt}</button>`;
+}).join('');
 function greeting() {
-  const h = new Date().getHours(), name = DATA.meta.name ? `, ${DATA.meta.name}` : '';
+  const h = new Date().getHours(), name = DATA.meta.name ? `, <em>${esc(DATA.meta.name)}</em>` : '';
   return `${h < 6 ? 'Goedenacht' : h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond'}${name}`;
 }
 function overviewIntro() {
@@ -1227,7 +1593,8 @@ function showTab(k) {
   const label = TABS.find(([t]) => t === k)[1];
   tabsEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', b.dataset.t === k));
   document.getElementById('crumb').textContent = '/ ' + label.toLowerCase();
-  document.getElementById('pageTitle').textContent = k === 'overzicht' ? greeting() : label;
+  document.getElementById('pageTitle').innerHTML = k === 'overzicht' ? greeting() : esc(label);
+  document.getElementById('eyebrow').textContent = k === 'overzicht' ? new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : (NAV[k] || ['Vintageton'])[0];
   document.getElementById('pageSub').textContent = k === 'overzicht' ? overviewIntro() : SUBS[k] || '';
   const leeg = !HAS_VINTED && ['merken', 'voorraad', 'transacties'].includes(k);
   if (leeg) { document.getElementById('leegTitel').textContent = `${label} volgt na de Vinted-koppeling`; document.getElementById('leegIcon').innerHTML = icon('link', 20); }
@@ -1264,7 +1631,7 @@ tt.innerHTML = '<button data-t="sales" aria-pressed="true">Verkopen</button><but
 tt.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; txTab = b.dataset.t; tt.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderTx(); };
 document.getElementById('txSearch').oninput = renderTx;
 if (matchMedia('(max-width: 1100px)').matches) document.getElementById('mainHint').textContent = 'Tik op een maand voor de details hieronder.';
-let rsz; addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (tab === 'overzicht') drawMainChart(); }, 150); });
+let rsz; addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (tab === 'overzicht') drawMainChart(); if (tab === 'merken' || tab === 'financien') render(); }, 150); });
 (document.fonts?.ready || Promise.resolve()).then(() => showTab(tab));
 </script>
 <script type="module">
@@ -2126,7 +2493,7 @@ window.__renderKansen = async function renderKansen() {
 // Online versie: inloggen bij Supabase, gegevens ophalen en omzetten naar het formaat van het dashboard.
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const CFG = {"url": "https://usvkmmogjfhsvbdcjouk.supabase.co", "key": "sb_publishable_CfQNcEN9iDtl_MlXqfI38w_58pLA4DF", "start": "2026-10-01", "login": "vintageton", "name": "Juup", "goal": 50000, "brands": {"Ralph Lauren": ["polo sport ralph lauren", "polo ralph lauren", "ralph lauren", "ralph", "lauren", "rl"], "FOUR Amsterdam": ["four amsterdam", "four", "fout"], "Carhartt": ["carhartt wip", "carhartt", "carhart", "carharrt"], "Stone Island": ["stone island", "stoneisland"], "Lacoste": ["lacoste"], "Daily Paper": ["daily paper", "dailypaper"], "Arte Antwerp": ["arte antwerp", "arte", "artr"], "Samsøe Samsøe": ["samsøe samsøe", "samsoe samsoe", "samsøe", "samsoe"], "ØLÅF": ["ølåf", "olaf", "ølaf", "olåf"], "Ami Paris": ["ami paris", "ami de coeur", "ami"], "Adidas": ["adidas", "samba", "gazelle", "spezial"], "Nike": ["nike", "air max", "air force", "dunk"], "Flaneur": ["flaneur", "flâneur"], "Tommy Hilfiger": ["tommy hilfiger", "hilfiger", "tommy"], "The North Face": ["the north face", "north face", "tnf"], "Stüssy": ["stüssy", "stussy"], "C.P. Company": ["c.p. company", "cp company"], "Moncler": ["moncler"], "Hugo Boss": ["hugo boss", "boss"], "Calvin Klein": ["calvin klein"], "Levi's": ["levi's", "levis", "levi’s"], "Represent": ["represent"], "Palm Angels": ["palm angels"], "Off-White": ["off-white", "off white"], "Arc'teryx": ["arc'teryx", "arcteryx"], "Patagonia": ["patagonia"], "New Balance": ["new balance"], "Zara": ["zara"], "H&M": ["h&m"]}, "categories": [["Bundel", ["^bundel"]], ["Joggingpak", ["jogging\\s*s?et", "joggingpak", "trainingspak", "tracksuit", "survêtement", "\\bpak\\b", "\\bset\\b", "ensemble"]], ["Quarter zip", ["quarter\\s*zip", "half\\s*zip", "1/4"]], ["Hoodie", ["hoodie", "hoody", "capuche", "sudadera con capucha"]], ["Sweater / trui", ["sweat", "trui", "pull", "crewneck", "knit", "jumper", "jersey", "sudadera", "maglione", "kabel"]], ["Vest", ["\\bvest\\b", "cardigan", "gilet"]], ["Jas", ["\\bjas\\b", "jacket", "jack\\b", "veste", "parka", "puffer", "bodywarmer", "windbreaker", "coat", "blouson"]], ["Polo", ["\\bpolo\\b(?!\\s*(sport|ralph))"]], ["T-shirt", ["t[\\s-]?shirt", "\\btee\\b", "camiseta", "longsleeve", "manches longues"]], ["Overhemd", ["overhemd", "\\bshirt\\b", "chemise", "button", "blouse", "oxford"]], ["Broek", ["broek", "pantalon", "trousers", "joggers?", "pants", "cargo"]], ["Jeans", ["jeans", "denim", "spijker"]], ["Short", ["short"]], ["Schoenen", ["schoen", "sneaker", "samba", "gazelle", "spezial", "air max", "air force", "dunk", "chaussure", "zapatilla", "shoes"]], ["Accessoires", ["\\bpet\\b", "\\bcap\\b", "muts", "beanie", "sjaal", "tas\\b", "bag", "riem", "belt", "sokken"]]], "manualSeed": [{"maand": "2025-12", "omzet": 1418.3, "winst": 650.0, "uitbetaald": 300.0, "items": null}, {"maand": "2026-01", "omzet": 2145.5, "winst": 1100.0, "uitbetaald": 191.29, "items": 74}, {"maand": "2026-02", "omzet": 1334.8, "winst": 646.3, "uitbetaald": 500.0, "items": 39}, {"maand": "2026-03", "omzet": 732.6, "winst": 335.0, "uitbetaald": 300.0, "items": 24}, {"maand": "2026-04", "omzet": 327.1, "winst": 145.0, "uitbetaald": 0.0, "items": 11}, {"maand": "2026-05", "omzet": 624.45, "winst": 299.5, "uitbetaald": 300.0, "items": 15}, {"maand": "2026-06", "omzet": 291.9, "winst": 128.4, "uitbetaald": 300.0, "items": 7}, {"maand": "2026-07", "omzet": 67.5, "winst": 27.25, "uitbetaald": 300.0, "items": 2}, {"maand": "2026-08", "omzet": 409.8, "winst": 175.0, "uitbetaald": 0.0, "items": 10}, {"maand": "2026-09", "omzet": 795.0, "winst": 343.0, "uitbetaald": 600.0, "items": 22}]};              // { url, key, start, login, goal, brands, categories, manualSeed }
+const CFG = {"url": "https://usvkmmogjfhsvbdcjouk.supabase.co", "key": "sb_publishable_CfQNcEN9iDtl_MlXqfI38w_58pLA4DF", "start": "2026-10-01", "login": "vintageton", "name": "Juup", "goal": 50000, "brands": {"Ralph Lauren": ["polo sport ralph lauren", "polo ralph lauren", "ralph lauren", "ralph", "lauren", "rl"], "FOUR Amsterdam": ["four amsterdam", "four", "fout"], "Carhartt": ["carhartt wip", "carhartt", "carhart", "carharrt"], "Stone Island": ["stone island", "stoneisland"], "Lacoste": ["lacoste"], "Daily Paper": ["daily paper", "dailypaper"], "Arte Antwerp": ["arte antwerp", "arte", "artr"], "Samsøe Samsøe": ["samsøe samsøe", "samsoe samsoe", "samsøe", "samsoe"], "ØLÅF": ["ølåf", "olaf", "ølaf", "olåf"], "Ami Paris": ["ami paris", "ami de coeur", "ami"], "Adidas": ["adidas", "samba", "gazelle", "spezial"], "Nike": ["nike", "air max", "air force", "dunk"], "Flaneur": ["flaneur", "flâneur"], "Tommy Hilfiger": ["tommy hilfiger", "hilfiger", "tommy"], "The North Face": ["the north face", "north face", "tnf"], "Stüssy": ["stüssy", "stussy"], "C.P. Company": ["c.p. company", "cp company"], "Moncler": ["moncler"], "Hugo Boss": ["hugo boss", "boss"], "Calvin Klein": ["calvin klein"], "Levi's": ["levi's", "levis", "levi’s"], "Represent": ["represent"], "Palm Angels": ["palm angels"], "Off-White": ["off-white", "off white"], "Arc'teryx": ["arc'teryx", "arcteryx"], "Patagonia": ["patagonia"], "New Balance": ["new balance"], "Zara": ["zara"], "H&M": ["h&m"]}, "categories": [["Bundel", ["^bundel"]], ["Joggingpak", ["jogging\\s*s{0,2}et", "joggingpak", "trainingspak", "tracksuit", "survêtement", "\\bpak\\b", "\\bset\\b", "ensemble"]], ["Quarter zip", ["quarter\\s*zip", "half\\s*zip", "1/4"]], ["Hoodie", ["hoodie", "hoody", "capuche", "sudadera con capucha"]], ["Sweater / trui", ["sweat", "trui", "pull", "crewneck", "knit", "jumper", "jersey", "sudadera", "maglione", "kabel"]], ["Vest", ["\\bvest\\b", "cardigan", "gilet"]], ["Jas", ["\\bjas\\b", "jacket", "jack\\b", "veste", "parka", "puffer", "bodywarmer", "windbreaker", "coat", "blouson"]], ["Polo", ["\\bpolo\\b(?!\\s*(sport|ralph))"]], ["T-shirt", ["t[\\s-]?shirt", "\\btee\\b", "camiseta", "longsleeve", "manches longues"]], ["Overhemd", ["overhemd", "\\bshirt\\b", "chemise", "button", "blouse", "oxford"]], ["Broek", ["broek", "pantalon", "trousers", "joggers?", "pants", "cargo"]], ["Jeans", ["jeans", "denim", "spijker"]], ["Short", ["short"]], ["Schoenen", ["schoen", "sneaker", "samba", "gazelle", "spezial", "air max", "air force", "dunk", "chaussure", "zapatilla", "shoes"]], ["Accessoires", ["\\bpet\\b", "\\bcap\\b", "muts", "beanie", "sjaal", "tas\\b", "bag", "riem", "belt", "sokken"]]], "manualSeed": [{"maand": "2025-12", "omzet": 1418.3, "winst": 650.0, "uitbetaald": 300.0, "items": null}, {"maand": "2026-01", "omzet": 2145.5, "winst": 1100.0, "uitbetaald": 191.29, "items": 74}, {"maand": "2026-02", "omzet": 1334.8, "winst": 646.3, "uitbetaald": 500.0, "items": 39}, {"maand": "2026-03", "omzet": 732.6, "winst": 335.0, "uitbetaald": 300.0, "items": 24}, {"maand": "2026-04", "omzet": 327.1, "winst": 145.0, "uitbetaald": 0.0, "items": 11}, {"maand": "2026-05", "omzet": 624.45, "winst": 299.5, "uitbetaald": 300.0, "items": 15}, {"maand": "2026-06", "omzet": 291.9, "winst": 128.4, "uitbetaald": 300.0, "items": 7}, {"maand": "2026-07", "omzet": 67.5, "winst": 27.25, "uitbetaald": 300.0, "items": 2}, {"maand": "2026-08", "omzet": 409.8, "winst": 175.0, "uitbetaald": 0.0, "items": 10}, {"maand": "2026-09", "omzet": 795.0, "winst": 343.0, "uitbetaald": 600.0, "items": 22}]};              // { url, key, start, login, goal, brands, categories, manualSeed }
 const sb = createClient(CFG.url, CFG.key);
 window.__sb = sb;
 window.__CFG = CFG;
