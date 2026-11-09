@@ -535,6 +535,7 @@ details.ink-sec > summary::-webkit-details-marker { display: none; }
 .setbar { background: var(--glass-strong); }
 .ed-bg { background: rgba(13,20,36,.38); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .ed { background: var(--glass-strong) !important; border-radius: var(--r); box-shadow: var(--shadow-raised); }
+.cand.gekozen { border-color: var(--c-rev); background: var(--omzet-tint); box-shadow: 0 0 0 2px var(--omzet-line); }
 
 /* ================= online: kansen (Glas) ================= */
 .tstatus.top::before { background: var(--c-profit); }
@@ -1647,7 +1648,7 @@ const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return i
 const norm = (s) => (s || '').toString().trim().toUpperCase();
 const STATUS = { onderweg: 'Onderweg', thuis: 'Thuis', online: 'Online' };
 
-let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false, setMode = false, gekozen = new Set(), bewerk = null;
+let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false, setMode = false, gekozen = new Set(), bewerk = null, inboxSet = null, setDoel = null;
 try { flash = sessionStorage.getItem('voorraadFlash') || ''; sessionStorage.removeItem('voorraadFlash'); } catch {}
 
 async function load() {
@@ -1659,6 +1660,37 @@ async function load() {
   for (const r of [ink, adv, sold]) if (r.error) throw new Error(r.error.message);
   // verkochte advertenties zijn alleen relevant als de verkoop vanaf de startdatum in het systeem staat
   state = { ink: ink.data, adv: adv.data, soldIds: new Set(sold.data.filter((r) => !['retour', 'geannuleerd'].includes(r.verkopen?.status)).map((r) => String(r.vinted_item_id))) };
+}
+
+// Losse items samenvoegen tot één set (nieuw item met opgetelde inkoop; de delen blijven bewaard met status in_set).
+// Met advId hangt de advertentie daarna aan de set. Met doelId wordt een bestaand (geschat) item de set, met de echte delen.
+async function bouwSet(ids, naam, advId, doelId) {
+  const its = state.ink.filter((x) => ids.includes(x.id));
+  if (its.length < (doelId ? 1 : 2)) throw new Error('Kies minstens ' + (doelId ? 'één deel.' : 'twee items.'));
+  if (its.some((x) => x.bron === 'set' || ['in_set', 'retour', 'prive'].includes(x.status))) throw new Error('Een van deze items is zelf een set of zit al in een set.');
+  const som = (k) => its.some((x) => x[k] == null) ? null : Math.round(its.reduce((t, x) => t + +x[k], 0) * 100) / 100;
+  const merken = [...new Set(its.map((x) => x.merk || window.__findBrand(x.titel)).filter(Boolean))];
+  const maat = [...new Set(its.map((x) => x.maat).filter(Boolean))].join(' / ') || null;
+  const gek = its.map((x) => x.gekocht_op).filter(Boolean).sort().pop() || new Date().toISOString();
+  const vast = { inkoopprijs: som('inkoopprijs'), prijs_item: som('prijs_item'), verzendkosten: som('verzendkosten') ?? 0, servicekosten: som('servicekosten') ?? 0, bron: 'set' };
+  let set;
+  if (doelId) {
+    const d = state.ink.find((x) => x.id === doelId);
+    const { data, error } = await sb().from('inkoop').update({ ...vast, foto_url: d.foto_url || its.find((x) => x.foto_url)?.foto_url || null, notitie: [d.notitie, `was ${d.bron} € ${d.inkoopprijs ?? '?'}`].filter(Boolean).join(' · ') }).eq('id', doelId).select().single();
+    if (error) throw new Error(error.message); set = data;
+  } else {
+    const a = advId ? state.adv.find((x) => String(x.vinted_item_id) === String(advId)) : null;
+    const { data, error } = await sb().from('inkoop').insert({ ...vast, titel: naam, merk: merken.length === 1 ? merken[0] : null, maat, foto_url: a?.foto_url || its.find((x) => x.foto_url)?.foto_url || null, gekocht_op: gek,
+      status: a ? (a.status === 'verkocht' ? 'verkocht' : 'online') : its.some((x) => x.status === 'onderweg') ? 'onderweg' : 'thuis' }).select().single();
+    if (error) throw new Error(error.message); set = data;
+  }
+  const r = await sb().from('inkoop').update({ status: 'in_set', set_id: set.id }).in('id', ids);
+  if (r.error) throw new Error(r.error.message);
+  // advertenties die aan een los deel hingen, hangen nu aan de set
+  const los = state.adv.filter((a) => ids.includes(a.inkoop_id) && String(a.vinted_item_id) !== String(advId));
+  for (const a of los) { const r2 = await sb().from('advertenties').update({ inkoop_id: null, koppeling: null }).eq('vinted_item_id', a.vinted_item_id); if (r2.error) throw new Error(r2.error.message); }
+  if (advId) await linkAdvert(advId, set.id);
+  return set;
 }
 
 // Kandidaten voor een advertentie: items die thuis/onderweg liggen en nog niet aan een advertentie hangen.
@@ -1760,8 +1792,9 @@ function view() {
         return `<div class="inbox-card" data-adv="${a.vinted_item_id}">${img(a.foto_url)}
           <div style="min-width:0"><div style="font-weight:600">${esc(a.titel)}</div>
             <div style="font-size:12.5px;color:var(--muted)">${esc([a.merk, a.maat].filter(Boolean).join(' · '))} · ${eur(a.prijs)} · ${a.status === 'verkocht' ? '<span class="warn">al verkocht</span>' : `${days(a.online_sinds) ?? '?'} dagen online`}${a.gevonden_code ? ` · code in tekst: <span class="code">${esc(a.gevonden_code)}</span>` : ''}</div>
-            ${c.length ? `<div class="cands">${c.slice(0, 6).map(({ i, score }) => `<button class="cand" data-link="${i.id}">${img(i.foto_url)}<span><span class="ct">${esc(i.titel)}</span><span class="cm"><span class="code">${esc(i.code)}</span> ${esc(i.maat || '')} ${score >= 5 ? '· beste match' : ''}</span></span></button>`).join('')}</div>
-              ${c.length > 6 ? `<select class="inp" data-pick style="margin-top:8px;max-width:360px"><option value="">… of kies uit alle ${c.length} items</option>${c.map(({ i }) => `<option value="${i.id}">${esc(i.code)} · ${esc(i.titel)} ${esc(i.maat || '')}</option>`).join('')}</select>` : ''}`
+            ${c.length ? `<div class="cands">${c.slice(0, inboxSet?.adv === String(a.vinted_item_id) ? 60 : 6).map(({ i, score }) => `<button class="cand ${inboxSet?.adv === String(a.vinted_item_id) && inboxSet.sel.has(i.id) ? 'gekozen' : ''}" data-link="${i.id}">${img(i.foto_url)}<span><span class="ct">${esc(i.titel)}</span><span class="cm"><span class="code">${esc(i.code)}</span> ${esc(i.maat || '')} ${score >= 5 ? '· beste match' : ''}</span></span></button>`).join('')}</div>
+              ${c.length >= 2 ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px"><button class="btn small ${inboxSet?.adv === String(a.vinted_item_id) ? 'primary' : ''}" data-setmode>${inboxSet?.adv === String(a.vinted_item_id) ? 'Stop set-modus' : 'Is dit een set? Kies de losse delen'}</button>${inboxSet?.adv === String(a.vinted_item_id) ? `<span style="font-size:12.5px;color:var(--text-2)">${inboxSet.sel.size ? `${inboxSet.sel.size} gekozen · inkoop samen ${eur([...inboxSet.sel].reduce((t, id) => t + +(state.ink.find((x) => x.id === id)?.inkoopprijs || 0), 0))}` : 'Tik de items aan die samen deze set vormen'}</span><button class="btn small primary" data-setgo ${inboxSet.sel.size < 2 ? 'disabled' : ''}>Maak set + koppel</button>` : ''}</div>` : ''}
+              ${c.length > 6 && inboxSet?.adv !== String(a.vinted_item_id) ? `<select class="inp" data-pick style="margin-top:8px;max-width:360px"><option value="">… of kies uit alle ${c.length} items</option>${c.map(({ i }) => `<option value="${i.id}">${esc(i.code)} · ${esc(i.titel)} ${esc(i.maat || '')}</option>`).join('')}</select>` : ''}`
               : '<div class="empty">Geen items thuis of onderweg om aan te koppelen.</div>'}
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px"><span style="font-size:12px;color:var(--muted)">Elders gekocht? Inkoopprijs:</span>
               <input class="inp" data-newprice placeholder="€ 0,00" inputmode="decimal" style="width:110px;padding:7px 10px"><button class="btn small" data-newlink>Nieuw item + koppelen</button></div>
@@ -1798,8 +1831,8 @@ function view() {
       <div class="err" id="addErr"></div>
     </div>` : ''}
 
-    ${setMode ? `<div class="setbar panel"><span>${gekozen.size ? `<b>${gekozen.size} gekozen</b> · samen ${eur([...gekozen].reduce((t, id) => t + +(state.ink.find((x) => x.id === id)?.inkoopprijs || 0), 0))} inkoop` : 'Tik de items aan die je als set wilt verkopen'}</span>
-      <button class="btn primary" id="maakSet" ${gekozen.size < 2 ? 'disabled' : ''}>Combineer tot set</button><span class="err" id="setErr"></span></div>` : ''}
+    ${setMode ? `<div class="setbar panel"><span>${gekozen.size ? `<b>${gekozen.size} gekozen</b> · samen ${eur([...gekozen].reduce((t, id) => t + +(state.ink.find((x) => x.id === id)?.inkoopprijs || 0), 0))} inkoop` : setDoel ? `Kies de losse items waaruit ${esc(state.ink.find((x) => x.id === setDoel)?.code || '')} bestaat` : 'Tik de items aan die je als set wilt verkopen'}</span>
+      <button class="btn primary" id="maakSet" ${gekozen.size < (setDoel ? 1 : 2) ? 'disabled' : ''}>${setDoel ? 'Delen vastleggen' : 'Combineer tot set'}</button><span class="err" id="setErr"></span></div>` : ''}
     ${bewerk ? editor(state.ink.find((x) => x.id === bewerk), advByInk.get(bewerk)) : ''}
     <div class="tiles">${shown.map((i) => tile(i, advByInk.get(i.id))).join('') || '<div class="empty">Geen items in deze selectie.</div>'}</div>
     ${zonderPrijs.length && shown.some((i) => i.inkoopprijs == null) ? `<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn primary" id="saveAllPrices">Alle ingevulde prijzen opslaan</button><span class="err" id="priceErr"></span></div>` : ''}
@@ -1827,6 +1860,7 @@ function editor(i, a) {
     <div class="ed-act">
       <button class="btn primary" type="submit">Opslaan</button>
       ${set.length && !a ? `<button type="button" class="btn" data-unset="${i.id}">Set weer los</button>` : `<button type="button" class="btn" data-split="${i.id}" title="Meerdere items in één aankoop">Splitsen</button>`}
+      ${i.bron !== 'vinted' && i.status !== 'in_set' && !set.length ? `<button type="button" class="btn" data-deelkies="${i.id}" title="Dit item bestaat uit losse items uit je voorraad (bv. hoodie + broek)">Delen kiezen</button>` : ''}
       <button type="button" class="btn" data-prive="${i.id}" title="Niet zakelijk: uit je dashboard">Privé</button>
       <button type="button" class="btn danger" data-del="${i.id}">Verwijderen</button>
     </div>
@@ -1879,15 +1913,20 @@ function bind() {
     if (r2.error) { err.textContent = r2.error.message; return; }
     await refresh(`${i.code} is verwijderd.`);
   });
-  root.querySelector('#toggleSet').onclick = () => { setMode = !setMode; gekozen = new Set(); flash = ''; view(); };
+  root.querySelector('#toggleSet').onclick = () => { setMode = !setMode; setDoel = null; gekozen = new Set(); flash = ''; view(); };
+  root.querySelectorAll('[data-deelkies]').forEach((b) => b.onclick = () => { setDoel = b.dataset.deelkies; setMode = true; gekozen = new Set(); bewerk = null; filter = 'alles'; flash = ''; view(); scrollTo({ top: 0 }); });
   if (setMode) root.querySelectorAll('.tile.kies').forEach((t) => t.onclick = (e) => {
-    if (e.target.closest('button, input')) return;
+    if (e.target.closest('button, input') || t.dataset.id === setDoel) return;
     gekozen.has(t.dataset.id) ? gekozen.delete(t.dataset.id) : gekozen.add(t.dataset.id); view();
   });
   // losse items samenvoegen tot één set: nieuw voorraaditem met de opgetelde inkoop; de losse items blijven bewaard (status in_set)
   root.querySelector('#maakSet')?.addEventListener('click', async () => {
     const its = state.ink.filter((x) => gekozen.has(x.id)), err = root.querySelector('#setErr');
     if (its.some((x) => advByInkId(x.id))) { err.textContent = 'Een van deze items staat al online. Haal die advertentie eerst offline.'; return; }
+    if (setDoel) {
+      try { const set = await bouwSet([...gekozen], null, null, setDoel); setDoel = null; setMode = false; gekozen = new Set(); await refresh(`${set.code} bestaat nu uit ${its.map((x) => x.code).join(' + ')}; de inkoop is de echte som van de delen.`); } catch (e) { err.textContent = e.message; }
+      return;
+    }
     const naam = prompt('Naam van de set:', 'Set: ' + its.map((x) => x.titel.replace(/\s*\(\d+\/\d+\)$/, '')).join(' + '));
     if (!naam) return;
     const som = (k) => its.some((x) => x[k] == null) ? null : Math.round(its.reduce((t, x) => t + +x[k], 0) * 100) / 100;
@@ -1915,7 +1954,16 @@ function bind() {
   root.querySelectorAll('.inbox-card').forEach((card) => {
     const advId = card.dataset.adv, err = card.querySelector('[data-err]');
     const go = async (inkId) => { try { await linkAdvert(advId, inkId); const i = state.ink.find((x) => x.id === inkId); await refresh(`Gekoppeld aan ${i?.code}. Tip: zet "Ref ${i?.code}" in de beschrijving.`); } catch (e) { err.textContent = e.message; } };
-    card.querySelectorAll('[data-link]').forEach((b) => b.onclick = () => go(b.dataset.link));
+    card.querySelectorAll('[data-link]').forEach((b) => b.onclick = () => {
+      if (inboxSet?.adv === advId) { inboxSet.sel.has(b.dataset.link) ? inboxSet.sel.delete(b.dataset.link) : inboxSet.sel.add(b.dataset.link); view(); } else go(b.dataset.link);
+    });
+    card.querySelector('[data-setmode]')?.addEventListener('click', () => { inboxSet = inboxSet?.adv === advId ? null : { adv: advId, sel: new Set() }; view(); });
+    card.querySelector('[data-setgo]')?.addEventListener('click', async () => {
+      const its = state.ink.filter((x) => inboxSet.sel.has(x.id)), a = state.adv.find((x) => String(x.vinted_item_id) === advId);
+      const naam = prompt('Naam van de set:', a.titel || 'Set: ' + its.map((x) => x.titel.replace(/\s*\(\d+\/\d+\)$/, '')).join(' + '));
+      if (!naam) return;
+      try { const set = await bouwSet([...inboxSet.sel], naam, advId); inboxSet = null; await refresh(`Set ${set.code} gemaakt van ${its.map((x) => x.code).join(' + ')} en gekoppeld aan de advertentie.`); } catch (e) { err.textContent = e.message; }
+    });
     card.querySelector('[data-pick]')?.addEventListener('change', (e) => e.target.value && go(e.target.value));
     card.querySelector('[data-newlink]').onclick = async () => {
       const prijs = num(card.querySelector('[data-newprice]').value);
