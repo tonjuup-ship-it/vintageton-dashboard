@@ -1698,7 +1698,7 @@ const img = (u, cls = '') => u ? `<img class="${cls}" src="${esc(u)}" alt="" loa
 const days = (d) => d ? Math.max(0, Math.floor((Date.now() - new Date(d)) / 864e5)) : null;
 const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null; };
 const norm = (s) => (s || '').toString().trim().toUpperCase();
-const STATUS = { onderweg: 'Onderweg', thuis: 'Thuis', online: 'Online' };
+const STATUS = { onderweg: 'Onderweg', thuis: 'Thuis', online: 'Online', verkocht: 'Verkocht' };
 
 let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false, setMode = false, gekozen = new Set(), bewerk = null, inboxSet = null, setDoel = null, openSec = new Set();
 try { flash = sessionStorage.getItem('voorraadFlash') || ''; sessionStorage.removeItem('voorraadFlash'); } catch {}
@@ -1866,6 +1866,13 @@ function view() {
     else if (i.status === 'verkocht' && list[0].inkoop_id !== i.id) warns.push(`Code <span class="code">${esc(code)}</span> in "${esc(list[0].titel)}" hoort bij een item dat al verkocht is.`);
   }
 
+  // handmatige set-items met een geschatte prijs: staan de echte losse delen nog in je voorraad?
+  let setOk = []; try { setOk = JSON.parse(localStorage.getItem('vd_setok') || '[]'); } catch {}
+  const losAanwezig = ink.some((i) => ['thuis', 'onderweg'].includes(i.status) && i.bron !== 'set' && soortVan(i) !== 'overig');
+  if (losAanwezig) for (const i of ink.filter((x) => x.bron === 'handmatig' && ['online', 'verkocht', 'thuis'].includes(x.status) && days(x.created_at) <= 45 && !setOk.includes(x.id)
+      && /jogging\s*s{0,2}et|joggingpak|\bset\b|\bpak\b/i.test(x.titel || '')).slice(0, 5))
+    warns.push(`<span class="code">${esc(i.code)}</span> ${esc(i.titel)} (${STATUS[i.status] || i.status}) heeft een handmatig ingevulde inkoop van ${eur(i.inkoopprijs)}. Liggen de echte hoodie en broek nog los in je voorraad? <button class="btn small" data-deelkies="${i.id}">Delen kiezen</button> <button class="btn small" data-setok="${i.id}">Klopt zo</button>`);
+
   // filteren, zoeken en sorteren
   const q = query.toLowerCase();
   let shown = stock.filter((i) => filter === 'alles' || (filter === 'zonderprijs' ? i.inkoopprijs == null : i.status === filter))
@@ -1992,6 +1999,7 @@ function bind() {
   const root = el();
   const advByInkId = (id) => state.adv.some((a) => a.inkoop_id === id && a.status !== 'verwijderd');
   root.querySelectorAll('#stockFilter [data-filter], .ink-kpis [data-filter]').forEach((b) => b.onclick = () => { filter = b.dataset.filter; flash = ''; view(); });
+  root.querySelectorAll('[data-setok]').forEach((b) => b.onclick = () => { try { localStorage.setItem('vd_setok', JSON.stringify([...JSON.parse(localStorage.getItem('vd_setok') || '[]'), b.dataset.setok])); } catch {} view(); });
   root.querySelectorAll('[data-meer]').forEach((b) => b.onclick = () => { openSec.has(b.dataset.meer) ? openSec.delete(b.dataset.meer) : openSec.add(b.dataset.meer); view(); });
   root.querySelectorAll('.tiles .tile').forEach((t) => t.addEventListener('click', (e) => { if (e.target.closest('button, input, a')) return; bewerk = t.dataset.id; flash = ''; view(); }));
   const kies = (ids, aan) => { const sc = [...root.querySelectorAll('.bk-l')].map((x) => x.scrollTop); ids.forEach((id) => aan ? gekozen.add(id) : gekozen.delete(id)); view(); el().querySelectorAll('.bk-l').forEach((x, k) => (x.scrollTop = sc[k] || 0)); };
