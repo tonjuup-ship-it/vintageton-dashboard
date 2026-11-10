@@ -537,6 +537,49 @@ details.ink-sec > summary::-webkit-details-marker { display: none; }
 .ed { background: var(--glass-strong) !important; border-radius: var(--r); box-shadow: var(--shadow-raised); }
 .cand.gekozen { border-color: var(--c-rev); background: var(--omzet-tint); box-shadow: 0 0 0 2px var(--omzet-line); }
 
+/* ================= Voorraad v2: filterkaarten, secties, rustige tegels, set-bouwer ================= */
+.vstage { text-align: left; cursor: pointer; font: inherit; color: inherit; transition: transform .2s, box-shadow .2s; }
+.vstage:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
+.vstage.aan { box-shadow: var(--shadow-card), 0 0 0 2px var(--c-rev); }
+.sdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: var(--muted); }
+.sdot.thuis { background: var(--c-cost); box-shadow: 0 0 8px var(--c-cost); } .sdot.online { background: var(--c-profit); box-shadow: 0 0 8px var(--c-profit); } .sdot.onderweg { background: var(--c-rev); box-shadow: 0 0 8px var(--c-rev); }
+.vsec { margin-top: 24px; }
+.vsec-h { display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap; margin: 0 2px 12px; }
+.vsec-h h3 { margin: 0; font: 400 24px/28px var(--display); color: var(--text); display: flex; align-items: center; }
+.vsec-h .cnt { font: 600 12px var(--mono); margin-left: 10px; padding: 3px 8px; border-radius: 999px; background: var(--track); color: var(--text-2); }
+.vsec-h .desc { color: var(--muted); font-size: 12.5px; } .vsec-h .linkbtn { margin-left: auto; }
+.tiles { grid-template-columns: repeat(auto-fill, minmax(min(100%, 184px), 1fr)); }
+@media (max-width: 520px) { .tiles { gap: 10px; } }
+.tiles .tile { cursor: pointer; }
+.tile-img.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+.tile-img.duo img, .tile-img.duo .noimg { position: relative; inset: auto; }
+.tsetb { position: absolute; left: 10px; bottom: 10px; z-index: 1; font: 600 11px var(--font); padding: 2px 9px; border-radius: 999px; color: #fff; background: linear-gradient(100deg, var(--brand-ink-a), var(--brand-ink-b)); }
+.tile .tt { min-height: 0; -webkit-line-clamp: 1; }
+.tkern { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.tkern b { font: 600 17px/1.2 var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tkern small { font-size: 11.5px; color: var(--muted); margin-left: 5px; }
+.tkern .w { font: 600 12.5px var(--mono); }
+.tile .tfoot { font-size: 11.5px; color: var(--muted); }
+.tfoot > span:last-child { display: inline-flex; gap: 5px; flex: none; }
+.tmeer { padding: 5px 9px; }
+.ed-delen { display: grid; gap: 6px; margin: 4px 0 10px; }
+.ed-delen > div:not(.kicker) { display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center; padding: 6px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); font-size: 12.5px; }
+.ed-delen img, .ed-delen .noimg { width: 36px; height: 46px; object-fit: cover; border-radius: 6px; }
+.ed-delen b { font: 500 12.5px var(--mono); }
+/* set-bouwer */
+.bk-vsl { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; margin: 8px 0 18px; }
+.bk-v { display: grid; grid-template-columns: 40px 40px 1fr; gap: 8px; align-items: center; padding: 6px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--glass-strong); cursor: pointer; text-align: left; color: var(--text); font: inherit; }
+.bk-v:hover { border-color: var(--c-rev); }
+.bk-v.gekozen { border-color: var(--c-rev); background: var(--omzet-tint); box-shadow: 0 0 0 2px var(--omzet-line); }
+.bk-v img, .bk-v .noimg { width: 40px; height: 52px; object-fit: cover; border-radius: 6px; }
+.bk-v b { display: block; font-size: 12.5px; font-weight: 600; }
+.bk-v .cm { display: block; font-size: 11px; color: var(--muted); }
+.bk-kols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.bk-h { font-weight: 600; margin-bottom: 8px; } .bk-h .cnt { font: 500 11px var(--mono); color: var(--muted); margin-left: 6px; }
+.bk-l { display: grid; gap: 6px; max-height: 56vh; overflow: auto; padding: 2px; align-content: start; }
+.bkr { width: 100%; }
+@media (max-width: 800px) { .bk-kols { grid-template-columns: 1fr; } .bk-l { max-height: 38vh; } }
+
 /* ================= online: kansen (Glas) ================= */
 .tstatus.top::before { background: var(--c-profit); }
 .tstatus.goed::before { background: var(--c-rev); }
@@ -1648,7 +1691,7 @@ const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return i
 const norm = (s) => (s || '').toString().trim().toUpperCase();
 const STATUS = { onderweg: 'Onderweg', thuis: 'Thuis', online: 'Online' };
 
-let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false, setMode = false, gekozen = new Set(), bewerk = null, inboxSet = null, setDoel = null;
+let state = null, flash = '', filter = 'alles', query = '', sort = 'nieuw', showAdd = false, setMode = false, gekozen = new Set(), bewerk = null, inboxSet = null, setDoel = null, openSec = new Set();
 try { flash = sessionStorage.getItem('voorraadFlash') || ''; sessionStorage.removeItem('voorraadFlash'); } catch {}
 
 async function load() {
@@ -1705,41 +1748,90 @@ function candidates(a, linkedIds) {
   }).sort((x, y) => y.score - x.score || new Date(y.i.created_at) - new Date(x.i.created_at));
 }
 
-// Eén tegel per voorraaditem
+// Soort, kleur en maat afleiden uit de titel (voor de set-bouwer en de tegels)
+const soortVan = (i) => {
+  const t = (i.titel || '').toLowerCase();
+  if (i.bron === 'set' || /jogging\s*s{0,2}et|joggingpak|trainingspak|tracksuit|\bpak\b|\bset\b|surv[eê]tement|ensemble/.test(t)) return 'overig';
+  if (/broek|jogger|jogging|pants|pantalon|trousers|short|legging|jeans/.test(t)) return 'broek';
+  if (/hood|sweat|trui|pull|crewneck|vest|zip|jersey|cardig|shirt|sleeve|polo|jas|jack|sudadera|knit|fleece/.test(t)) return 'top';
+  return 'overig';
+};
+const KLEUR = [['zwart', /zwart|black|noir|negr/], ['navy', /navy|donkerblauw|marine|\bdb\b/], ['blauw', /blauw|blue|bleu|azul/], ['grijs', /grijs|grey|gray|gris/], ['beige', /beige|cr[eè]me|cream|zand/],
+  ['groen', /groen|green|vert\b|verde/], ['wit', /\bwit|white|blanc/], ['bruin', /bruin|brown|marron/], ['rood', /rood|\bred\b|rouge/], ['roze', /roze|pink|rose/]];
+const kleurVan = (t) => (KLEUR.find(([, re]) => re.test((t || '').toLowerCase())) || [null])[0];
+const maatKort = (m) => m ? String(m).split('/')[0].trim().toUpperCase() : '';
+const merkVan = (i) => window.__findBrand(i.merk || '') || window.__findBrand(i.titel || '') || i.merk || null;
+
+// Eén tegel per voorraaditem: foto, kern in één regel, hooguit één snelle actie; de rest zit achter ⋯ (of een tik op de tegel)
 function tile(i, a) {
   const st = a?.status === 'gereserveerd' ? 'gereserveerd' : i.status;
+  const deel = state.ink.filter((x) => x.set_id === i.id), df = deel.filter((x) => x.foto_url);
+  const duo = !a?.foto_url && df.length > 1 ? df.slice(0, 2) : null;
   const foto = a?.foto_url || i.foto_url;
   const vraag = a && ['actief', 'gereserveerd', 'verborgen'].includes(a.status) ? +a.prijs : null;
   const winst = vraag != null && i.inkoopprijs != null ? vraag - i.inkoopprijs : null;
   const d = i.status === 'online' ? days(a?.online_sinds) : days(i.gekocht_op || i.created_at);
-  const oud = i.status === 'online' && d > 60;
-  const deel = state.ink.filter((x) => x.set_id === i.id);
-  return `<article class="tile ${oud ? 'stale' : ''} ${setMode ? 'kies' : ''} ${gekozen.has(i.id) ? 'gekozen' : ''}" data-id="${i.id}">
-    <div class="tile-img">${img(foto)}${setMode ? `<span class="tcheck">${gekozen.has(i.id) ? '✓' : ''}</span>` : ''}
+  const oud = i.status === 'online' && d > 60, sv = soortVan(i);
+  const srt = deel.length ? 'set' : sv === 'top' ? 'bovenstuk' : sv === 'broek' ? 'broek' : '';
+  return `<article class="tile ${oud ? 'stale' : ''}" data-id="${i.id}">
+    <div class="tile-img ${duo ? 'duo' : ''}">${duo ? duo.map((x) => img(x.foto_url)).join('') : img(foto)}
       <span class="tstatus ${st}">${st === 'gereserveerd' ? 'Gereserveerd' : STATUS[st]}</span>
       <span class="code tcode">${esc(i.code)}</span>
-      ${foto ? `<span class="tsrc">${a?.foto_url ? 'jouw advertentie' : 'foto aankoop'}</span>` : ''}
+      ${deel.length ? `<span class="tsetb">Set · ${deel.map((x) => esc(x.code)).join(' + ')}</span>` : ''}
     </div>
     <div class="tile-body">
       <div class="tt" title="${esc(i.titel)}">${esc(i.titel)}</div>
-      ${deel.length ? `<div class="tset">Set van ${deel.map((x) => esc(x.code)).join(' + ')}</div>` : ''}
-      <div class="tm">${esc([i.merk || window.__findBrand(i.titel), i.maat].filter(Boolean).join(' · ') || 'merk/maat onbekend')}</div>
-      <div class="tnums">
-        <div><span>Inkoop</span><b>${i.inkoopprijs != null ? eur(i.inkoopprijs) : '<span class="warn">?</span>'}</b></div>
-        <div><span>Vraag</span><b>${vraag != null ? eur(vraag) : '–'}</b></div>
-        <div><span>Winst</span><b class="${winst == null ? '' : winst < 0 ? 'neg' : 'pos'}">${winst != null ? eur(winst) : '–'}</b></div>
-      </div>
+      <div class="tm">${esc([merkVan(i), maatKort(i.maat), srt].filter(Boolean).join(' · ') || 'merk/maat onbekend')}</div>
+      ${i.inkoopprijs == null ? `<div class="tprice"><input class="inp" data-price="${i.id}" placeholder="inkoop € 0,00" inputmode="decimal"><button class="btn small" data-saveprice="${i.id}">Opslaan</button></div>`
+        : `<div class="tkern">${vraag != null ? `<span><b>${eur(vraag)}</b><small>vraag</small></span><span class="w ${winst == null ? '' : winst < 0 ? 'neg' : 'pos'}">${winst != null ? (winst >= 0 ? '+' : '') + eur(winst) : ''}</span>` : `<span><b>${eur(i.inkoopprijs)}</b><small>inkoop</small></span>`}</div>`}
       <div class="tfoot">
-        <span class="${oud ? 'warn' : ''}">${d == null ? '' : i.status === 'online' ? `${d} d online` : i.status === 'onderweg' ? `${d} d geleden gekocht` : `${d} d in huis`}${a && i.status === 'online' ? ` · ${a.favorieten || 0} ♥` : ''}</span>
-        <span>${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : ''}
-        <button class="btn small" data-tekst="${i.id}" title="Titel + beschrijving kopiëren om in de Vinted-app te plakken">Tekst</button>
-        ${deel.length && !a ? `<button class="btn small" data-unset="${i.id}" title="Set weer losse items maken">Los</button>` : ''}
-        <button class="btn small" data-bewerk="${i.id}" title="Gegevens aanpassen, splitsen, privé of verwijderen">Wijzig</button></span>
+        <span class="${oud ? 'warn' : ''}">${d == null ? '' : i.status === 'online' ? `${d} d online` : i.status === 'onderweg' ? `${d} d onderweg` : `${d} d in huis`}${a && i.status === 'online' ? ` · ${a.favorieten || 0} ♥` : ''}</span>
+        <span>${i.status === 'onderweg' ? `<button class="btn small primary" data-binnen="${i.id}">Binnen ✓</button>` : i.status === 'thuis' ? `<button class="btn small" data-tekst="${i.id}" title="Titel + beschrijving kopiëren om in de Vinted-app te plakken">Tekst</button>` : ''}
+        <button class="btn small tmeer" data-bewerk="${i.id}" title="Details, wijzigen, set, splitsen" aria-label="Details">⋯</button></span>
       </div>
-      ${i.inkoopprijs == null ? `<div class="tprice"><input class="inp" data-price="${i.id}" placeholder="inkoop € 0,00" inputmode="decimal"><button class="btn small" data-saveprice="${i.id}">Opslaan</button></div>` : ''}
       <div class="err" data-err></div>
     </div>
   </article>`;
+}
+
+// Tegels per status, met de stapel waar je iets mee moet (thuis) bovenaan
+function secties(shown, advByInk) {
+  const t = (l) => `<div class="tiles">${l.map((i) => tile(i, advByInk.get(i.id))).join('')}</div>`;
+  if (!shown.length) return '<div class="empty">Geen items in deze selectie.</div>';
+  if (filter !== 'alles' || query) return t(shown);
+  return [['thuis', 'Thuis', 'klaar om online te zetten'], ['online', 'Online', 'staat op Vinted'], ['onderweg', 'Onderweg', 'gekocht, nog niet binnen']].map(([k, naam, hint]) => {
+    const l = shown.filter((i) => i.status === k); if (!l.length) return '';
+    return `<section class="vsec"><div class="vsec-h"><h3><span class="sdot ${k}"></span>${naam}<span class="cnt">${l.length}</span></h3><span class="desc">${hint} · ${eur0(l.reduce((s, i) => s + +(i.inkoopprijs || 0), 0))} inkoop</span>
+      ${l.length > 8 ? `<button class="linkbtn" data-meer="${k}">${openSec.has(k) ? 'Toon minder' : `Toon alle ${l.length}`}</button>` : ''}</div>${t(openSec.has(k) ? l : l.slice(0, 8))}</section>`;
+  }).join('');
+}
+
+// Voorstellen voor sets: bovenstuk + broek van hetzelfde merk en dezelfde maat (kleur telt mee als die in de titel staat)
+function voorstellen(los) {
+  const tops = los.filter((i) => soortVan(i) === 'top'), br = los.filter((i) => soortVan(i) === 'broek'), paren = [];
+  for (const t of tops) for (const b of br) {
+    const mt = merkVan(t), mb = merkVan(b);
+    if ((mt && mb && mt !== mb) || (!mt && !mb) || !t.maat || maatKort(t.maat) !== maatKort(b.maat)) continue;
+    const kt = kleurVan(t.titel), kb = kleurVan(b.titel); if (kt && kb && kt !== kb) continue;
+    paren.push([t, b, (kt && kt === kb ? 2 : 0) + (mt && mb ? 1 : 0) + (t.status === 'thuis' && b.status === 'thuis' ? 1 : 0)]);
+  }
+  const used = new Set(), out = [];
+  for (const p of paren.sort((x, y) => y[2] - x[2])) { if (used.has(p[0].id) || used.has(p[1].id)) continue; used.add(p[0].id); used.add(p[1].id); out.push(p); if (out.length === 6) break; }
+  return out;
+}
+
+// Set-bouwer: losse items in drie kolommen, met voorstellen bovenaan
+function bouwer(advByInk) {
+  const los = state.ink.filter((i) => ['thuis', 'onderweg'].includes(i.status) && i.bron !== 'set' && !advByInk.has(i.id) && i.id !== setDoel);
+  const q = query.toLowerCase(), zicht = los.filter((i) => !q || [i.code, i.titel, i.merk, i.maat].join(' ').toLowerCase().includes(q));
+  const rij = (i) => `<button class="cand bkr ${gekozen.has(i.id) ? 'gekozen' : ''}" data-kies="${i.id}">${img(i.foto_url)}<span><span class="ct">${esc(i.titel)}</span><span class="cm"><span class="code">${esc(i.code)}</span> ${esc(maatKort(i.maat))} · ${i.inkoopprijs != null ? eur(i.inkoopprijs) : '?'}${i.status === 'onderweg' ? ' · onderweg' : ''}</span></span></button>`;
+  const kol = (soort, titel) => { const l = zicht.filter((i) => soortVan(i) === soort); return `<div><div class="bk-h">${titel}<span class="cnt">${l.length}</span></div><div class="bk-l">${l.map(rij).join('') || '<div class="empty">Niets gevonden.</div>'}</div></div>`; };
+  const vs = setDoel ? [] : voorstellen(los), doel = setDoel && state.ink.find((x) => x.id === setDoel);
+  return `<div class="panel bouwer">
+    <div class="ph"><h3>${doel ? `Delen kiezen voor ${esc(doel.code)} · ${esc(doel.titel)}` : 'Set maken'}</h3><span class="desc">${doel ? 'tik de losse items aan waaruit dit item echt bestaat' : 'tik een bovenstuk en een broek aan; de inkoop wordt opgeteld en je krijgt één code voor de set'}</span></div>
+    ${vs.length ? `<div class="kicker">Past bij elkaar (zelfde merk en maat)</div><div class="bk-vsl">${vs.map(([a, b]) => `<button class="bk-v ${gekozen.has(a.id) && gekozen.has(b.id) ? 'gekozen' : ''}" data-paar="${a.id},${b.id}">${img(a.foto_url)}${img(b.foto_url)}<span><b>${esc(merkVan(a) || merkVan(b) || 'Set')} · ${esc(maatKort(a.maat))}</b><span class="cm">${esc(a.code)} + ${esc(b.code)} · ${eur(+(a.inkoopprijs || 0) + +(b.inkoopprijs || 0))}</span></span></button>`).join('')}</div>` : ''}
+    <div class="bk-kols">${kol('top', 'Bovenstukken')}${kol('broek', 'Broeken')}${kol('overig', 'Overig')}</div>
+  </div>`;
 }
 
 function view() {
@@ -1777,10 +1869,9 @@ function view() {
   el().innerHTML = `
     ${flash ? `<div class="panel" style="margin-bottom:14px;padding:12px 16px"><span class="ok">${flash}</span></div>` : ''}
     <div class="ink-kpis">
-      <div class="panel"><div class="kicker">Voorraad</div><div class="v">${stock.length}</div><div class="s">${count('onderweg')} onderweg · ${count('thuis')} thuis · ${count('online')} online</div></div>
-      <div class="panel"><div class="kicker">Inkoopwaarde</div><div class="v">${eur0(inkoopWaarde)}</div><div class="s">${zonderPrijs.length ? `<span class="warn">${zonderPrijs.length} items zonder prijs</span>` : 'alle prijzen bekend'}</div></div>
-      <div class="panel"><div class="kicker">Vraagwaarde online</div><div class="v">${eur0(vraagWaarde)}</div><div class="s">als alles verkoopt tegen vraagprijs</div></div>
-      <div class="panel ${inbox.length ? 'warnbox' : ''}"><div class="kicker">Te koppelen</div><div class="v">${inbox.length}</div><div class="s">advertenties zonder inkoop</div></div>
+      ${[['thuis', 'Thuis', 'klaar om online te zetten'], ['online', 'Online', `${eur0(vraagWaarde)} vraagwaarde`], ['onderweg', 'Onderweg', 'nog niet binnen']].map(([k, l, h]) => { const ls = stock.filter((i) => i.status === k);
+        return `<button class="panel vstage ${filter === k ? 'aan' : ''}" data-filter="${k}"><div class="kicker"><span class="sdot ${k}"></span>${l}</div><div class="v">${ls.length}</div><div class="s">${eur0(ls.reduce((t, i) => t + +(i.inkoopprijs || 0), 0))} inkoop · ${h}</div></button>`; }).join('')}
+      <button class="panel vstage ${filter === 'alles' ? 'aan' : ''}" data-filter="alles"><div class="kicker">Totaal</div><div class="v">${stock.length}</div><div class="s">${eur0(inkoopWaarde)} inkoop · ${zonderPrijs.length ? `<span class="warn">${zonderPrijs.length} zonder prijs</span>` : 'alle prijzen bekend'}</div></button>
     </div>
 
     ${warns.length ? `<div class="panel ink-sec warnbox"><div class="ph"><h3>Controleer</h3></div><ul style="margin:0;padding-left:18px;color:var(--text-2)">${warns.map((w) => `<li style="margin:4px 0">${w}</li>`).join('')}</ul></div>` : ''}
@@ -1834,7 +1925,7 @@ function view() {
     ${setMode ? `<div class="setbar panel"><span>${gekozen.size ? `<b>${gekozen.size} gekozen</b> · samen ${eur([...gekozen].reduce((t, id) => t + +(state.ink.find((x) => x.id === id)?.inkoopprijs || 0), 0))} inkoop` : setDoel ? `Kies de losse items waaruit ${esc(state.ink.find((x) => x.id === setDoel)?.code || '')} bestaat` : 'Tik de items aan die je als set wilt verkopen'}</span>
       <button class="btn primary" id="maakSet" ${gekozen.size < (setDoel ? 1 : 2) ? 'disabled' : ''}>${setDoel ? 'Delen vastleggen' : 'Combineer tot set'}</button><span class="err" id="setErr"></span></div>` : ''}
     ${bewerk ? editor(state.ink.find((x) => x.id === bewerk), advByInk.get(bewerk)) : ''}
-    <div class="tiles">${shown.map((i) => tile(i, advByInk.get(i.id))).join('') || '<div class="empty">Geen items in deze selectie.</div>'}</div>
+    ${setMode ? bouwer(advByInk) : secties(shown, advByInk)}
     ${zonderPrijs.length && shown.some((i) => i.inkoopprijs == null) ? `<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn primary" id="saveAllPrices">Alle ingevulde prijzen opslaan</button><span class="err" id="priceErr"></span></div>` : ''}
     <p class="note">Tip: zet bij een nieuwe advertentie <b>Ref ${stock.find((i) => i.status === 'thuis') ? esc(stock.find((i) => i.status === 'thuis').code) : 'K0001'}</b> als laatste regel in de beschrijving, dan koppelt het vanzelf bij de volgende synchronisatie.</p>`;
   bind();
@@ -1856,9 +1947,11 @@ function editor(i, a) {
       <label class="field">Gekocht op<input name="gekocht_op" type="date" value="${dt}"></label>
       <label class="field">Status<select name="status">${opt('onderweg', 'Onderweg')}${opt('thuis', 'Thuis')}${opt('online', 'Online')}${opt('verkocht', 'Verkocht (buiten Vinted)')}</select></label>
     </div>
+    ${set.length ? `<div class="ed-delen"><div class="kicker">Deze set bestaat uit</div>${set.map((x) => `<div>${img(x.foto_url)}<span><span class="code">${esc(x.code)}</span> ${esc(x.titel)}</span><b>${x.inkoopprijs != null ? eur(x.inkoopprijs) : '?'}</b></div>`).join('')}</div>` : ''}
     <div class="err" id="edErr"></div>
     <div class="ed-act">
       <button class="btn primary" type="submit">Opslaan</button>
+      <button type="button" class="btn" data-tekst="${i.id}" title="Titel + beschrijving kopiëren om in de Vinted-app te plakken">Tekst</button>
       ${set.length && !a ? `<button type="button" class="btn" data-unset="${i.id}">Set weer los</button>` : `<button type="button" class="btn" data-split="${i.id}" title="Meerdere items in één aankoop">Splitsen</button>`}
       ${i.bron !== 'vinted' && i.status !== 'in_set' && !set.length ? `<button type="button" class="btn" data-deelkies="${i.id}" title="Dit item bestaat uit losse items uit je voorraad (bv. hoodie + broek)">Delen kiezen</button>` : ''}
       <button type="button" class="btn" data-prive="${i.id}" title="Niet zakelijk: uit je dashboard">Privé</button>
@@ -1882,7 +1975,12 @@ function showErr(node, msg) { const e = node.closest('.tile, .inbox-card')?.quer
 function bind() {
   const root = el();
   const advByInkId = (id) => state.adv.some((a) => a.inkoop_id === id && a.status !== 'verwijderd');
-  root.querySelectorAll('#stockFilter [data-filter]').forEach((b) => b.onclick = () => { filter = b.dataset.filter; flash = ''; view(); });
+  root.querySelectorAll('#stockFilter [data-filter], .ink-kpis [data-filter]').forEach((b) => b.onclick = () => { filter = b.dataset.filter; flash = ''; view(); });
+  root.querySelectorAll('[data-meer]').forEach((b) => b.onclick = () => { openSec.has(b.dataset.meer) ? openSec.delete(b.dataset.meer) : openSec.add(b.dataset.meer); view(); });
+  root.querySelectorAll('.tiles .tile').forEach((t) => t.addEventListener('click', (e) => { if (e.target.closest('button, input, a')) return; bewerk = t.dataset.id; flash = ''; view(); }));
+  const kies = (ids, aan) => { const sc = [...root.querySelectorAll('.bk-l')].map((x) => x.scrollTop); ids.forEach((id) => aan ? gekozen.add(id) : gekozen.delete(id)); view(); el().querySelectorAll('.bk-l').forEach((x, k) => (x.scrollTop = sc[k] || 0)); };
+  root.querySelectorAll('[data-kies]').forEach((b) => b.onclick = () => kies([b.dataset.kies], !gekozen.has(b.dataset.kies)));
+  root.querySelectorAll('[data-paar]').forEach((b) => b.onclick = () => { const ids = b.dataset.paar.split(','); const aan = !ids.every((id) => gekozen.has(id)); if (aan) gekozen.clear(); kies(ids, aan); });
   const search = root.querySelector('#stockSearch');
   search.oninput = () => { query = search.value; const pos = search.selectionStart; flash = ''; view(); const s2 = el().querySelector('#stockSearch'); s2.focus(); s2.setSelectionRange(pos, pos); };
   root.querySelector('#stockSort').onchange = (e) => { sort = e.target.value; flash = ''; view(); };
@@ -1927,7 +2025,9 @@ function bind() {
       try { const set = await bouwSet([...gekozen], null, null, setDoel); setDoel = null; setMode = false; gekozen = new Set(); await refresh(`${set.code} bestaat nu uit ${its.map((x) => x.code).join(' + ')}; de inkoop is de echte som van de delen.`); } catch (e) { err.textContent = e.message; }
       return;
     }
-    const naam = prompt('Naam van de set:', 'Set: ' + its.map((x) => x.titel.replace(/\s*\(\d+\/\d+\)$/, '')).join(' + '));
+    const merkS = [...new Set(its.map(merkVan).filter(Boolean))], maatS = [...new Set(its.map((x) => maatKort(x.maat)).filter(Boolean))];
+    const std = its.length === 2 && its.some((x) => soortVan(x) === 'top') && its.some((x) => soortVan(x) === 'broek') && merkS.length === 1 ? `${merkS[0]} joggingset ${maatS.join('/')}`.trim() : 'Set: ' + its.map((x) => x.titel.replace(/\s*\(\d+\/\d+\)$/, '')).join(' + ');
+    const naam = prompt('Naam van de set:', std);
     if (!naam) return;
     const som = (k) => its.some((x) => x[k] == null) ? null : Math.round(its.reduce((t, x) => t + +x[k], 0) * 100) / 100;
     const merken = [...new Set(its.map((x) => x.merk || window.__findBrand(x.titel)).filter(Boolean))];
