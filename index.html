@@ -1921,6 +1921,7 @@ function view() {
           <option value="code" ${sort === 'code' ? 'selected' : ''}>Op code</option>
         </select>
         <button class="btn ${setMode ? 'primary' : ''}" id="toggleSet">${setMode ? '× Stoppen' : 'Set maken'}</button>
+        <button class="btn" id="undoSet" title="Maakt de laatst gemaakte set weer ongedaan">↶ Laatste set ongedaan</button>
         <button class="btn" id="toggleAdd">${showAdd ? '× Sluiten' : '+ Voorraad toevoegen'}</button>
       </div>
     </div>
@@ -2035,6 +2036,19 @@ function bind() {
     if (r2.error) { err.textContent = r2.error.message; return; }
     await refresh(`${i.code} is verwijderd.`);
   });
+  root.querySelector('#undoSet').onclick = async (e) => {
+    const set = state.ink.filter((x) => x.bron === 'set').sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))[0];
+    if (!set) { alert('Geen set gevonden.'); return; }
+    const delen = state.ink.filter((x) => x.set_id === set.id);
+    if (!confirm(`Laatste set ongedaan maken?\n${set.code} · ${set.titel}\nDelen (${delen.map((x) => x.code).join(' + ')}) worden weer losse voorraad; de advertentie komt terug in Te koppelen.`)) return;
+    const r0 = await sb().from('advertenties').update({ inkoop_id: null, koppeling: null }).eq('inkoop_id', set.id);
+    if (r0.error) { alert(r0.error.message); return; }
+    const r = await sb().from('inkoop').update({ status: set.status === 'onderweg' ? 'onderweg' : 'thuis', set_id: null }).eq('set_id', set.id);
+    if (r.error) { alert(r.error.message); return; }
+    const r2 = await sb().from('inkoop').delete().eq('id', set.id);
+    if (r2.error) { alert(r2.error.message); return; }
+    await refresh(`${set.code} is ongedaan gemaakt; ${delen.map((x) => x.code).join(' + ')} zijn weer losse voorraad.`);
+  };
   root.querySelector('#toggleSet').onclick = () => { setMode = !setMode; setDoel = null; gekozen = new Set(); flash = ''; view(); };
   root.querySelectorAll('[data-deelkies]').forEach((b) => b.onclick = () => { setDoel = b.dataset.deelkies; setMode = true; gekozen = new Set(); bewerk = null; filter = 'alles'; flash = ''; view(); scrollTo({ top: 0 }); });
   if (setMode) root.querySelectorAll('.tile.kies').forEach((t) => t.onclick = (e) => {
